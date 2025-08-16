@@ -12,21 +12,20 @@ const SurahListItemGrid = ({ surah }: SurahListItemGridProps) => {
     <Link to={`/surah/${surah.number}`}>
       <Card className="h-full hover:border-primary transition-colors">
         <CardContent className="p-4 flex items-center gap-4">
-          <div className="bg-primary/10 text-primary rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg shrink-0">
+          <div className="bg-primary text-primary-foreground rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg shrink-0">
             {surah.number}
           </div>
           <div className="flex-grow">
-            <div className="flex items-center justify-between">
+            <div className="flex justify-between items-center">
               <p className="font-bold text-lg">{surah.englishName}</p>
               <p className="font-arabic text-2xl text-primary">{surah.name}</p>
             </div>
-            <div className="flex items-center gap-2 text-muted-foreground text-sm mt-1">
+            <div className="flex items-center gap-2 text-muted-foreground text-sm">
               <span>{surah.englishNameTranslation}</span>
-              <span className="text-xs">•</span>
+              <Badge variant="outline" className="capitalize">{surah.revelationType}</Badge>
               <span>{surah.numberOfAyahs} verses</span>
             </div>
           </div>
-          <Badge variant="outline" className="capitalize self-start mt-1">{surah.revelationType}</Badge>
         </CardContent>
       </Card>
     </Link>
