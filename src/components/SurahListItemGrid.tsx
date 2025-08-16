@@ -11,19 +11,17 @@ const SurahListItemGrid = ({ surah }: SurahListItemGridProps) => {
   return (
     <Link to={`/surah/${surah.number}`}>
       <Card className="h-full hover:border-primary transition-colors">
-        <CardContent className="p-4 flex flex-col justify-between h-full min-h-[150px]">
-          <div>
-            <div className="flex justify-between items-center">
-              <p className="font-bold text-xl">{surah.englishName}</p>
-              <p className="font-arabic text-3xl text-primary">{surah.name}</p>
-            </div>
-            <p className="text-muted-foreground mt-1">{surah.englishNameTranslation}</p>
+        <CardContent className="p-4 flex items-center gap-4">
+          <div className="bg-primary/10 text-primary rounded-full w-10 h-10 flex items-center justify-center font-bold text-lg shrink-0">
+            {surah.number}
           </div>
-          <div className="flex justify-between items-center mt-4">
-            <div className="bg-primary/10 text-primary rounded-full w-10 h-10 flex items-center justify-center font-bold text-lg shrink-0">
-              {surah.number}
+          <div className="flex-grow">
+            <div className="flex justify-between items-center">
+              <p className="font-bold text-lg">{surah.englishName}</p>
+              <p className="font-arabic text-2xl text-primary">{surah.name}</p>
             </div>
-            <div className="flex items-center gap-2 text-muted-foreground text-sm">
+            <div className="flex items-center gap-2 text-muted-foreground text-sm flex-wrap">
+              <span>{surah.englishNameTranslation}</span>
               <Badge variant="outline" className="capitalize">{surah.revelationType}</Badge>
               <span>{surah.numberOfAyahs} verses</span>
             </div>
