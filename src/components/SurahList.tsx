@@ -110,13 +110,13 @@ const SurahList = () => {
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[...Array(8)].map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[...Array(9)].map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}
         </div>
       ) : (
         <>
           {view === 'grid' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredSurahs?.map((surah) => (
                 <SurahListItemGrid key={surah.number} surah={surah} />
               ))}
