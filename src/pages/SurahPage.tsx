@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Ayah } from "@/types";
+import { Ayah, SurahInfo } from "@/types";
 import AyahListItem from "@/components/AyahListItem";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Play } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 const fetchSurahDetail = async (surahId: number) => {
   const response = await fetch(`https://api.alquran.cloud/v1/surah/${surahId}/editions/quran-uthmani,en.sahih`);
@@ -21,16 +22,20 @@ const fetchSurahDetail = async (surahId: number) => {
     englishText: englishEdition.ayahs[index].text,
   }));
 
-  return {
+  const surahInfo: Partial<SurahInfo> & { ayahs: Ayah[] } = {
     name: arabicEdition.name,
     englishName: arabicEdition.englishName,
     englishNameTranslation: arabicEdition.englishNameTranslation,
+    numberOfAyahs: arabicEdition.numberOfAyahs,
+    revelationType: arabicEdition.revelationType,
     ayahs: combinedAyahs,
   };
+  return surahInfo;
 };
 
 const SurahPage = () => {
   const { surahId } = useParams<{ surahId: string }>();
+  const navigate = useNavigate();
   const id = Number(surahId);
 
   const { data: surah, isLoading, error } = useQuery({
@@ -56,7 +61,7 @@ const SurahPage = () => {
     }
   }, [isPlaying, activeAyah]);
 
-  const handlePlay = (ayah: Ayah) => {
+  const handlePlayAyah = (ayah: Ayah) => {
     if (activeAyah?.number === ayah.number) {
       setIsPlaying(!isPlaying);
     } else {
@@ -71,11 +76,12 @@ const SurahPage = () => {
 
   if (isLoading) {
     return (
-      <div className="w-full max-w-3xl mx-auto p-4 space-y-4">
-        <Skeleton className="h-12 w-1/2" />
-        <Skeleton className="h-8 w-1/3" />
+      <div className="bg-background rounded-xl p-4 md:p-8 border space-y-4">
+        <Skeleton className="h-8 w-1/4" />
+        <Skeleton className="h-16 w-1/2 mx-auto" />
+        <Skeleton className="h-8 w-1/3 mx-auto" />
         <div className="space-y-4 mt-8">
-          {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-48 w-full" />)}
+          {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-40 w-full" />)}
         </div>
       </div>
     );
@@ -85,23 +91,49 @@ const SurahPage = () => {
     return <div className="text-center p-8 text-destructive">An error occurred: {(error as Error).message}</div>;
   }
 
+  const handleNav = (offset: number) => {
+    const nextId = id + offset;
+    if (nextId > 0 && nextId < 115) {
+      navigate(`/surah/${nextId}`);
+    }
+  };
+
   return (
-    <div className="w-full max-w-3xl mx-auto p-4">
-      <Button asChild variant="outline" className="mb-8">
-        <Link to="/"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Surah List</Link>
-      </Button>
+    <div className="bg-background rounded-xl p-4 md:p-8 border">
+      <div className="flex justify-between items-center mb-8">
+        <Button asChild variant="ghost">
+          <Link to="/"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Surahs</Link>
+        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="icon" onClick={() => handleNav(-1)} disabled={id <= 1}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="icon" onClick={() => handleNav(1)} disabled={id >= 114}>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold">{surah?.englishName}</h1>
-        <p className="text-2xl font-arabic">{surah?.name}</p>
-        <p className="text-muted-foreground">{surah?.englishNameTranslation}</p>
+        <h1 className="text-3xl md:text-4xl font-bold">{surah?.englishName}</h1>
+        <p className="text-4xl md:text-5xl font-arabic my-2 text-primary">{surah?.name}</p>
+        <p className="text-muted-foreground text-lg">{surah?.englishNameTranslation}</p>
+        <div className="flex justify-center items-center gap-4 mt-4 text-muted-foreground">
+          <Badge variant="secondary">Surah {id}</Badge>
+          <Badge variant="secondary">{surah?.numberOfAyahs} verses</Badge>
+          <Badge variant="secondary" className="capitalize">{surah?.revelationType}</Badge>
+        </div>
+        <Button className="mt-6">
+          <Play className="mr-2 h-4 w-4" /> Play Surah
+        </Button>
       </div>
       <div className="space-y-4">
         {surah?.ayahs.map((ayah) => (
           <AyahListItem
             key={ayah.number}
             ayah={ayah}
+            surahNumber={id}
             isPlaying={isPlaying && activeAyah?.number === ayah.number}
-            onPlay={() => handlePlay(ayah)}
+            onPlay={() => handlePlayAyah(ayah)}
           />
         ))}
       </div>

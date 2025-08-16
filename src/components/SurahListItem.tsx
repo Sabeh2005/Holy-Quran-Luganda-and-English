@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { SurahInfo } from "@/types";
 
 interface SurahListItemProps {
@@ -8,19 +9,24 @@ interface SurahListItemProps {
 
 const SurahListItem = ({ surah }: SurahListItemProps) => {
   return (
-    <Link to={`/surah/${surah.number}`} className="block hover:bg-accent rounded-lg">
-      <Card>
-        <CardContent className="p-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="bg-primary text-primary-foreground rounded-full w-10 h-10 flex items-center justify-center font-bold">
-              {surah.number}
+    <Link to={`/surah/${surah.number}`}>
+      <Card className="h-full hover:border-primary transition-colors">
+        <CardContent className="p-4 flex items-center gap-4">
+          <div className="bg-primary/10 text-primary rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg shrink-0">
+            {surah.number}
+          </div>
+          <div className="flex-grow">
+            <div className="flex items-center justify-between">
+              <p className="font-bold text-lg">{surah.englishName}</p>
+              <p className="font-arabic text-2xl text-primary">{surah.name}</p>
             </div>
-            <div>
-              <p className="font-semibold">{surah.englishName}</p>
-              <p className="text-sm text-muted-foreground">{surah.englishNameTranslation}</p>
+            <div className="flex items-center gap-2 text-muted-foreground text-sm mt-1">
+              <span>{surah.englishNameTranslation}</span>
+              <span className="text-xs">•</span>
+              <span>{surah.numberOfAyahs} verses</span>
             </div>
           </div>
-          <p className="font-arabic text-lg">{surah.name}</p>
+          <Badge variant="outline" className="capitalize self-start mt-1">{surah.revelationType}</Badge>
         </CardContent>
       </Card>
     </Link>
