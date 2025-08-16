@@ -3,11 +3,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { SurahInfo } from "@/types";
 
-interface SurahListItemProps {
+interface SurahListItemGridProps {
   surah: SurahInfo;
 }
 
-const SurahListItem = ({ surah }: SurahListItemProps) => {
+const SurahListItemGrid = ({ surah }: SurahListItemGridProps) => {
   return (
     <Link to={`/surah/${surah.number}`}>
       <Card className="h-full hover:border-primary transition-colors">
@@ -33,4 +33,4 @@ const SurahListItem = ({ surah }: SurahListItemProps) => {
   );
 };
 
-export default SurahListItem;
+export default SurahListItemGrid;

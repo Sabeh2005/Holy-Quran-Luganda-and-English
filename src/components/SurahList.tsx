@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { SurahInfo } from "@/types";
-import SurahListItem from "./SurahListItem";
+import SurahListItemGrid from "./SurahListItemGrid";
+import SurahListItemList from "./SurahListItemList";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
 import { LayoutGrid, List, Search } from "lucide-react";
@@ -54,13 +55,15 @@ const SurahList = () => {
           {view === 'grid' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {surahs?.map((surah) => (
-                <SurahListItem key={surah.number} surah={surah} />
+                <SurahListItemGrid key={surah.number} surah={surah} />
               ))}
             </div>
           )}
           {view === 'list' && (
-            <div className="text-center p-8 text-muted-foreground">
-              List view is not yet implemented.
+            <div className="flex flex-col gap-2">
+              {surahs?.map((surah) => (
+                <SurahListItemList key={surah.number} surah={surah} />
+              ))}
             </div>
           )}
            {view === 'browse' && (
