@@ -75,3 +75,10 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .bg-dot-pattern {
+    background-image: radial-gradient(circle, currentColor 1px, transparent 1px);
+    background-size: 10px 10px;
+  }
+}

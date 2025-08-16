@@ -1,14 +1,14 @@
 import SurahList from "@/components/SurahList";
 import { MadeWithDyad } from "@/components/made-with-dyad";
+import Hero from "@/components/Hero";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background text-foreground p-4 md:p-8">
-      <main>
-        <SurahList />
-      </main>
+    <>
+      <Hero />
+      <SurahList />
       <MadeWithDyad />
-    </div>
+    </>
   );
 };
 
