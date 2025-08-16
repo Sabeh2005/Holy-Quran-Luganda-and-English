@@ -34,7 +34,7 @@ const SurahList = () => {
 
   const filteredSurahs = surahs
     ?.filter((surah) => {
-      if (!jumpToSurah) return true;
+      if (!jumpToSurah || jumpToSurah === "all") return true;
       return String(surah.number) === jumpToSurah;
     })
     .filter((surah) => {
@@ -93,7 +93,7 @@ const SurahList = () => {
             </div>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Surahs</SelectItem>
+            <SelectItem value="all">All Surahs</SelectItem>
             {surahs?.map(surah => (
               <SelectItem key={surah.number} value={String(surah.number)}>
                 {surah.number}. {surah.englishName}
