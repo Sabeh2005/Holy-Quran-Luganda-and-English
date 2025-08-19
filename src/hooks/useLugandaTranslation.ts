@@ -33,6 +33,23 @@ const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
       }
     }
   }
+
+  // Adjust for Surah 1 (Al-Fatiha) due to missing Basmala in the translation file
+  if (translation[1]) {
+    const surah1 = translation[1];
+    const adjustedSurah1: Record<number, string> = {};
+    // The API includes Basmala as verse 1, but the translation file starts numbering
+    // from the next verse. We need to shift the translation keys to match the API.
+    // e.g., translation file's verse 1 is actually API's verse 2.
+    for (const key in surah1) {
+      const originalAyahNumber = parseInt(key, 10);
+      if (!isNaN(originalAyahNumber)) {
+        adjustedSurah1[originalAyahNumber + 1] = surah1[originalAyahNumber];
+      }
+    }
+    translation[1] = adjustedSurah1;
+  }
+
   return translation;
 };
 
