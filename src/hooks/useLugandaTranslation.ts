@@ -25,8 +25,13 @@ const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
     const trimmedLine = line.trim();
     if (!trimmedLine) continue; // Skip empty lines
 
-    // Check for Surah header
-    const surahMatch = trimmedLine.match(/^Essuula (\d+):/);
+    // Skip separator lines
+    if (/^-+$/.test(trimmedLine)) {
+        continue;
+    }
+
+    // Check for Surah header (case-insensitive)
+    const surahMatch = trimmedLine.match(/^Essuula (\d+):/i);
     if (surahMatch) {
       currentSurah = parseInt(surahMatch[1], 10);
       if (!translation[currentSurah]) {
@@ -54,13 +59,6 @@ const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
     }
   }
 
-  // Clean up trailing hyphens from all verses
-  for (const surahNum in translation) {
-    for (const ayahNum in translation[surahNum]) {
-      translation[surahNum][ayahNum] = translation[surahNum][ayahNum].replace(/--+$/, '').trim();
-    }
-  }
-
   if (Object.keys(translation).length === 0) {
     const fileSnippet = text.substring(0, 500);
     throw new Error(`Failed to parse any surahs from the file. Content: "${fileSnippet}"`);
@@ -72,7 +70,7 @@ const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
 
 export const useLugandaTranslation = () => {
   return useQuery<LugandaTranslation>({
-    queryKey: ["lugandaTranslation_v2_parser"],
+    queryKey: ["lugandaTranslation_v3_parser"],
     queryFn: fetchAndParseTranslation,
     staleTime: Infinity, 
     gcTime: Infinity,
