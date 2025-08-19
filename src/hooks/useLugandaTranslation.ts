@@ -7,13 +7,17 @@ const LUGANDA_TRANSLATION_URL = "https://ndlvawhavwyvqergzvng.supabase.co/storag
 const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
   const response = await fetch(LUGANDA_TRANSLATION_URL);
   if (!response.ok) {
-    throw new Error("Failed to fetch Luganda translation file.");
+    throw new Error(`Failed to fetch Luganda translation file. Status: ${response.status}`);
   }
   
   const text = await response.text();
+  if (!text) {
+    throw new Error("Luganda translation file is empty.");
+  }
   
   const translation: LugandaTranslation = {};
   const lines = text.split(/\r\n?|\n/);
+  let parsedLines = 0;
 
   for (const line of lines) {
     const trimmedLine = line.trim();
@@ -32,8 +36,13 @@ const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
           translation[surah] = {};
         }
         translation[surah][ayah] = translationText;
+        parsedLines++;
       }
     }
+  }
+
+  if (parsedLines === 0) {
+    throw new Error("Failed to parse any lines from the Luganda translation file. Check file format.");
   }
 
   return translation;
@@ -41,7 +50,6 @@ const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
 
 export const useLugandaTranslation = () => {
   return useQuery<LugandaTranslation>({
-    // Using a new query key to ensure a fresh fetch and bypass any bad cache.
     queryKey: ["lugandaTranslation_final_correct"],
     queryFn: fetchAndParseTranslation,
     staleTime: Infinity, 

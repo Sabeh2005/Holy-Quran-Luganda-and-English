@@ -48,13 +48,13 @@ const SurahPage = () => {
   const navigate = useNavigate();
   const id = Number(surahId);
 
-  const { data: surah, isLoading: isSurahLoading, error } = useQuery({
+  const { data: surah, isLoading: isSurahLoading, error: surahError } = useQuery({
     queryKey: ["surah", id],
     queryFn: () => fetchSurahDetail(id),
     enabled: !isNaN(id),
   });
 
-  const { data: lugandaTranslation, isLoading: isLugandaLoading } = useLugandaTranslation();
+  const { data: lugandaTranslation, isLoading: isLugandaLoading, error: lugandaError } = useLugandaTranslation();
 
   const [activeAyah, setActiveAyah] = useState<Ayah | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -86,7 +86,10 @@ const SurahPage = () => {
     return <div className="text-center p-8">Invalid Surah number.</div>;
   }
 
-  if (isSurahLoading || isLugandaLoading) {
+  const isLoading = isSurahLoading || isLugandaLoading;
+  const error = surahError || lugandaError;
+
+  if (isLoading) {
     return (
       <div className="bg-background rounded-xl p-4 md:p-8 border space-y-4">
         <Skeleton className="h-8 w-1/4" />
