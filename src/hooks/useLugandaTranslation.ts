@@ -16,36 +16,44 @@ const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
   }
   
   const translation: LugandaTranslation = {};
-  const lines = text.split(/\r\n?|\n/);
-  let parsedLines = 0;
-  const lineRegex = /^(\d+)\|(\d+)\|(.*)$/;
+  let parsedVerses = 0;
 
-  for (const line of lines) {
-    const trimmedLine = line.trim();
-    if (trimmedLine.startsWith('#') || trimmedLine === '') {
-      continue;
+  // Regex to capture each Surah block
+  const surahRegex = /Essuula (\d+):([\s\S]*?)(?=Essuula \d+:|$)/g;
+  let surahMatch;
+
+  while ((surahMatch = surahRegex.exec(text)) !== null) {
+    const surahNumber = parseInt(surahMatch[1], 10);
+    const surahContent = surahMatch[2].trim();
+
+    if (isNaN(surahNumber)) continue;
+
+    if (!translation[surahNumber]) {
+      translation[surahNumber] = {};
     }
 
-    const match = trimmedLine.match(lineRegex);
+    // Split the content into verses. The separator is a number followed by a dot.
+    const verseParts = surahContent.split(/(?=\d+\.\s)/).filter(s => s.trim());
 
-    if (match && match.length === 4) {
-      const surah = parseInt(match[1], 10);
-      const ayah = parseInt(match[2], 10);
-      const translationText = match[3].trim();
+    for (const part of verseParts) {
+      const trimmedPart = part.trim();
+      const verseMatch = trimmedPart.match(/^(\d+)\.\s*([\s\S]*)/);
+      
+      if (verseMatch) {
+        const ayahNumber = parseInt(verseMatch[1], 10);
+        const ayahText = verseMatch[2].replace(/--+$/, '').trim();
 
-      if (!isNaN(surah) && !isNaN(ayah) && translationText) {
-        if (!translation[surah]) {
-          translation[surah] = {};
+        if (!isNaN(ayahNumber) && ayahText) {
+          translation[surahNumber][ayahNumber] = ayahText;
+          parsedVerses++;
         }
-        translation[surah][ayah] = translationText;
-        parsedLines++;
       }
     }
   }
 
-  if (parsedLines === 0) {
+  if (parsedVerses === 0) {
     const fileSnippet = text.substring(0, 500);
-    throw new Error(`Failed to parse any lines. File format may be incorrect. Start of file: "${fileSnippet}"`);
+    throw new Error(`Failed to parse any verses from the file. Content: "${fileSnippet}"`);
   }
 
   return translation;
