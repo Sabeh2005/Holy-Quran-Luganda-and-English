@@ -19,43 +19,35 @@ const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
   const lines = text.split('\n');
   
   let currentSurah: number | null = null;
-  let currentAyah: number | null = null;
+  let lastAyahInSurah: number | null = null;
 
   for (const line of lines) {
     const trimmedLine = line.trim();
-    if (!trimmedLine) continue; // Skip empty lines
+    if (!trimmedLine) continue;
+    if (/^-+$/.test(trimmedLine)) continue;
 
-    // Skip separator lines
-    if (/^-+$/.test(trimmedLine)) {
-        continue;
-    }
-
-    // Check for Surah header (case-insensitive)
     const surahMatch = trimmedLine.match(/^Essuula (\d+):/i);
     if (surahMatch) {
       currentSurah = parseInt(surahMatch[1], 10);
       if (!translation[currentSurah]) {
         translation[currentSurah] = {};
       }
-      currentAyah = null; // Reset current ayah when a new surah starts
+      lastAyahInSurah = null;
       continue;
     }
 
-    // Check for Ayah start
+    if (!currentSurah) continue;
+
     const ayahMatch = trimmedLine.match(/^(\d+)\.\s*(.*)/);
-    if (ayahMatch && currentSurah) {
-      currentAyah = parseInt(ayahMatch[1], 10);
+    if (ayahMatch) {
+      const ayahNum = parseInt(ayahMatch[1], 10);
       const ayahText = ayahMatch[2].trim();
-      
-      if (translation[currentSurah] && !isNaN(currentAyah)) {
-        translation[currentSurah][currentAyah] = ayahText;
-      }
-      continue;
-    }
-
-    // If it's not a surah or a new ayah, it's a continuation of the previous ayah
-    if (currentSurah && currentAyah && translation[currentSurah] && translation[currentSurah][currentAyah]) {
-      translation[currentSurah][currentAyah] += ' ' + trimmedLine;
+      lastAyahInSurah = ayahNum;
+      // Initialize or append, just in case of duplicate verse numbers in file
+      translation[currentSurah][ayahNum] = (translation[currentSurah][ayahNum] || '') + ayahText;
+    } else if (lastAyahInSurah) {
+      // This is a continuation line for the last seen verse
+      translation[currentSurah][lastAyahInSurah] += ' ' + trimmedLine;
     }
   }
 
@@ -70,7 +62,7 @@ const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
 
 export const useLugandaTranslation = () => {
   return useQuery<LugandaTranslation>({
-    queryKey: ["lugandaTranslation_v3_parser"],
+    queryKey: ["lugandaTranslation_v4_parser"],
     queryFn: fetchAndParseTranslation,
     staleTime: Infinity, 
     gcTime: Infinity,
