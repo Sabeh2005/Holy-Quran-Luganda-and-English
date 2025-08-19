@@ -9,21 +9,29 @@ const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
   if (!response.ok) {
     throw new Error("Failed to fetch Luganda translation.");
   }
-  const text = await response.text();
+  let text = await response.text();
+
+  // Remove Byte Order Mark (BOM) if it exists, as it can interfere with parsing
+  if (text.charCodeAt(0) === 0xFEFF) {
+    text = text.slice(1);
+  }
   
   const translation: LugandaTranslation = {};
-  const lines = text.split(/\r?\n/); // Use regex to handle different line endings
+  // Use a more robust regex to split lines, handling different line endings (\n, \r, \r\n)
+  const lines = text.split(/\r\n?|\n/);
 
   for (const line of lines) {
-    if (line.startsWith('#') || line.trim() === '') {
+    const trimmedLine = line.trim();
+    // Skip comments and empty lines
+    if (trimmedLine.startsWith('#') || trimmedLine === '') {
       continue;
     }
 
-    const parts = line.split('|');
+    const parts = trimmedLine.split('|');
     if (parts.length === 3) {
       const surah = parseInt(parts[0], 10);
       const ayah = parseInt(parts[1], 10);
-      const translationText = parts[2].trim(); // Trim whitespace from the translation
+      const translationText = parts[2].trim();
 
       if (!isNaN(surah) && !isNaN(ayah) && translationText) {
         if (!translation[surah]) {
@@ -41,7 +49,7 @@ export const useLugandaTranslation = () => {
   return useQuery<LugandaTranslation>({
     queryKey: ["lugandaTranslation"],
     queryFn: fetchAndParseTranslation,
-    staleTime: Infinity,
+    staleTime: Infinity, // This data is static, so we don't need to refetch it.
     gcTime: Infinity,
   });
 };
