@@ -12,7 +12,7 @@ const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
   const text = await response.text();
   
   const translation: LugandaTranslation = {};
-  const lines = text.split('\n');
+  const lines = text.split(/\r?\n/); // Use regex to handle different line endings
 
   for (const line of lines) {
     if (line.startsWith('#') || line.trim() === '') {
@@ -23,9 +23,9 @@ const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
     if (parts.length === 3) {
       const surah = parseInt(parts[0], 10);
       const ayah = parseInt(parts[1], 10);
-      const translationText = parts[2];
+      const translationText = parts[2].trim(); // Trim whitespace from the translation
 
-      if (!isNaN(surah) && !isNaN(ayah)) {
+      if (!isNaN(surah) && !isNaN(ayah) && translationText) {
         if (!translation[surah]) {
           translation[surah] = {};
         }
