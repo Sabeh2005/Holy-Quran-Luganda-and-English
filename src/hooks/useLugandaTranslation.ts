@@ -10,7 +10,7 @@ const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
     throw new Error("Failed to fetch Luganda translation file.");
   }
   const text = await response.text();
-  const translation: LugandaTranslation = {};
+  const rawTranslation: LugandaTranslation = {};
   const lines = text.split(/\r?\n/);
 
   for (const line of lines) {
@@ -26,31 +26,43 @@ const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
       const translationText = parts[2].trim();
 
       if (!isNaN(surah) && !isNaN(ayah) && translationText) {
-        if (!translation[surah]) {
-          translation[surah] = {};
+        if (!rawTranslation[surah]) {
+          rawTranslation[surah] = {};
         }
-        translation[surah][ayah] = translationText;
+        rawTranslation[surah][ayah] = translationText;
       }
     }
   }
 
-  // Adjust for Surah 1 (Al-Fatiha) due to missing Basmala in the translation file
-  if (translation[1]) {
-    const surah1 = translation[1];
-    const adjustedSurah1: Record<number, string> = {};
-    // The API includes Basmala as verse 1, but the translation file starts numbering
-    // from the next verse. We need to shift the translation keys to match the API.
-    // e.g., translation file's verse 1 is actually API's verse 2.
-    for (const key in surah1) {
-      const originalAyahNumber = parseInt(key, 10);
-      if (!isNaN(originalAyahNumber)) {
-        adjustedSurah1[originalAyahNumber + 1] = surah1[originalAyahNumber];
-      }
+  // The API includes the Basmala as verse 1 for all Surahs except 9.
+  // The translation file omits the Basmala translation, causing a 1-verse offset.
+  // We need to adjust the verse numbers from the file to match the API.
+  const adjustedTranslation: LugandaTranslation = {};
+
+  for (const surahNumStr in rawTranslation) {
+    const surahNumber = parseInt(surahNumStr, 10);
+    if (isNaN(surahNumber)) continue;
+
+    adjustedTranslation[surahNumber] = {};
+    const surahAyahs = rawTranslation[surahNumber];
+
+    // Surah 9 (At-Tawbah) has no Basmala, so numbering is correct. No adjustment needed.
+    if (surahNumber === 9) {
+      adjustedTranslation[surahNumber] = surahAyahs;
+      continue;
     }
-    translation[1] = adjustedSurah1;
+
+    // For all other Surahs, verse `X` in the file corresponds to verse `X+1` in the API.
+    for (const ayahNumStr in surahAyahs) {
+      const originalAyahNumber = parseInt(ayahNumStr, 10);
+      if (isNaN(originalAyahNumber)) continue;
+
+      const adjustedAyahNumber = originalAyahNumber + 1;
+      adjustedTranslation[surahNumber][adjustedAyahNumber] = surahAyahs[originalAyahNumber];
+    }
   }
 
-  return translation;
+  return adjustedTranslation;
 };
 
 export const useLugandaTranslation = () => {
