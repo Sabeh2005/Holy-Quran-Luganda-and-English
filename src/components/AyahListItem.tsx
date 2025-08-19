@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Play, Pause, Bookmark, Copy, Share2 } from "lucide-react";
 import { Ayah } from "@/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { useLugandaTranslation } from "@/hooks/useLugandaTranslation";
 import { Skeleton } from "@/components/ui/skeleton";
 
