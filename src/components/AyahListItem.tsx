@@ -1,10 +1,11 @@
-import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Play, Pause, Bookmark, Copy, Share2 } from "lucide-react";
 import { Ayah } from "@/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { useLugandaTranslation } from "@/hooks/useLugandaTranslation";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface AyahListItemProps {
   ayah: Ayah;
@@ -15,14 +16,30 @@ interface AyahListItemProps {
 
 const AyahListItem = ({ ayah, surahNumber, isPlaying, onPlay }: AyahListItemProps) => {
   const { toast } = useToast();
+  const { data: lugandaTranslation, isLoading, isError } = useLugandaTranslation();
 
   const handleCopy = () => {
-    const textToCopy = `${ayah.text}\n\n${ayah.englishText}\n\n- Surah ${surahNumber}, Verse ${ayah.numberInSurah}`;
+    const lugandaText = lugandaTranslation?.[surahNumber]?.[ayah.numberInSurah] || "[Luganda translation not available]";
+    const textToCopy = `${ayah.text}\n\n${ayah.englishText}\n\n${lugandaText}\n\n- Surah ${surahNumber}, Verse ${ayah.numberInSurah}`;
     navigator.clipboard.writeText(textToCopy);
     toast({
       title: "Copied to clipboard!",
       description: `Verse ${ayah.numberInSurah} has been copied.`,
     });
+  };
+
+  const renderLugandaContent = () => {
+    if (isLoading) {
+      return <Skeleton className="h-6 w-full" />;
+    }
+    if (isError) {
+      return <p className="text-destructive italic">Failed to load Luganda translation.</p>;
+    }
+    const translation = lugandaTranslation?.[surahNumber]?.[ayah.numberInSurah];
+    if (translation) {
+      return <p className="text-muted-foreground">{translation}</p>;
+    }
+    return <p className="text-muted-foreground italic">[Luganda translation not available for this verse]</p>;
   };
 
   return (
@@ -52,7 +69,7 @@ const AyahListItem = ({ ayah, surahNumber, isPlaying, onPlay }: AyahListItemProp
             <TabsTrigger value="english">English</TabsTrigger>
           </TabsList>
           <TabsContent value="luganda" className="p-4 bg-background rounded-md mt-2">
-            <p className="text-muted-foreground italic">[Luganda translation not yet available]</p>
+            {renderLugandaContent()}
           </TabsContent>
           <TabsContent value="english" className="p-4 bg-background rounded-md mt-2">
             <p className="text-muted-foreground">{ayah.englishText}</p>
