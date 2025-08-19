@@ -26,10 +26,30 @@ const fetchSurahDetail = async (surahId: number) => {
   const arabicEdition = arabicData.data;
   const englishEdition = englishData.data;
 
-  const combinedAyahs: Ayah[] = arabicEdition.ayahs.map((ayah: any, index: number) => ({
+  let combinedAyahs: Ayah[] = arabicEdition.ayahs.map((ayah: any, index: number) => ({
     ...ayah,
     englishText: englishEdition.ayahs[index].text,
   }));
+
+  // Special handling for Surah Al-Baqarah (ID: 2)
+  // The API sometimes omits the first verse "Alif, Lam, Meem".
+  // We manually prepend it if it's missing to ensure alignment with translations.
+  if (surahId === 2 && (combinedAyahs.length === 0 || combinedAyahs[0].numberInSurah !== 1)) {
+    const alifLamMeemAyah: Ayah = {
+      number: 7,
+      audio: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/7.mp3",
+      text: "الٓمٓ",
+      englishText: "Alif, Lam, Meem.",
+      numberInSurah: 1,
+      juz: 1,
+      manzil: 1,
+      page: 2,
+      ruku: 1,
+      hizbQuarter: 1,
+      sajda: false,
+    };
+    combinedAyahs.unshift(alifLamMeemAyah);
+  }
 
   const surahInfo: Partial<SurahInfo> & { ayahs: Ayah[] } = {
     name: arabicEdition.name,
