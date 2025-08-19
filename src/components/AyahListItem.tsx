@@ -4,19 +4,20 @@ import { Play, Pause, Bookmark, Copy, Share2 } from "lucide-react";
 import { Ayah } from "@/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { useLugandaTranslation } from "@/hooks/useLugandaTranslation";
 import { Skeleton } from "@/components/ui/skeleton";
+
+type LugandaTranslationData = Record<number, Record<number, string>> | undefined;
 
 interface AyahListItemProps {
   ayah: Ayah;
   surahNumber: number;
   isPlaying: boolean;
   onPlay: () => void;
+  lugandaTranslation: LugandaTranslationData;
 }
 
-const AyahListItem = ({ ayah, surahNumber, isPlaying, onPlay }: AyahListItemProps) => {
+const AyahListItem = ({ ayah, surahNumber, isPlaying, onPlay, lugandaTranslation }: AyahListItemProps) => {
   const { toast } = useToast();
-  const { data: lugandaTranslation, isLoading, isError } = useLugandaTranslation();
 
   const handleCopy = () => {
     const lugandaText = lugandaTranslation?.[surahNumber]?.[ayah.numberInSurah] || "[Luganda translation not available]";
@@ -29,16 +30,16 @@ const AyahListItem = ({ ayah, surahNumber, isPlaying, onPlay }: AyahListItemProp
   };
 
   const renderLugandaContent = () => {
-    if (isLoading) {
+    if (lugandaTranslation === undefined) {
       return <Skeleton className="h-6 w-full" />;
     }
-    if (isError) {
-      return <p className="text-destructive italic">Failed to load Luganda translation.</p>;
-    }
+    
     const translation = lugandaTranslation?.[surahNumber]?.[ayah.numberInSurah];
+    
     if (translation) {
       return <p className="text-muted-foreground">{translation}</p>;
     }
+    
     return <p className="text-muted-foreground italic">[Luganda translation not available for this verse]</p>;
   };
 

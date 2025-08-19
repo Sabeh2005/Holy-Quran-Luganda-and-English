@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, ChevronLeft, ChevronRight, Play } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { lugandaSurahNames } from "@/data/lugandaSurahNames";
+import { useLugandaTranslation } from "@/hooks/useLugandaTranslation";
 
 const fetchSurahDetail = async (surahId: number) => {
   const [arabicRes, englishRes] = await Promise.all([
@@ -47,11 +48,13 @@ const SurahPage = () => {
   const navigate = useNavigate();
   const id = Number(surahId);
 
-  const { data: surah, isLoading, error } = useQuery({
+  const { data: surah, isLoading: isSurahLoading, error } = useQuery({
     queryKey: ["surah", id],
     queryFn: () => fetchSurahDetail(id),
     enabled: !isNaN(id),
   });
+
+  const { data: lugandaTranslation, isLoading: isLugandaLoading } = useLugandaTranslation();
 
   const [activeAyah, setActiveAyah] = useState<Ayah | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -83,7 +86,7 @@ const SurahPage = () => {
     return <div className="text-center p-8">Invalid Surah number.</div>;
   }
 
-  if (isLoading) {
+  if (isSurahLoading || isLugandaLoading) {
     return (
       <div className="bg-background rounded-xl p-4 md:p-8 border space-y-4">
         <Skeleton className="h-8 w-1/4" />
@@ -144,6 +147,7 @@ const SurahPage = () => {
             surahNumber={id}
             isPlaying={isPlaying && activeAyah?.number === ayah.number}
             onPlay={() => handlePlayAyah(ayah)}
+            lugandaTranslation={lugandaTranslation}
           />
         ))}
       </div>
