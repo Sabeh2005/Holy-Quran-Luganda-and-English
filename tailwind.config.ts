@@ -19,7 +19,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        arabic: ["'Noto Naskh Arabic'", "serif"],
+        arabic: ["'Noorehuda'", "'Noto Naskh Arabic'", "serif"],
       },
       colors: {
         border: "hsl(var(--border))",
