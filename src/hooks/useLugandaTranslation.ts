@@ -18,6 +18,7 @@ const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
   const translation: LugandaTranslation = {};
   const lines = text.split(/\r\n?|\n/);
   let parsedLines = 0;
+  const lineRegex = /^(\d+)\|(\d+)\|(.*)$/;
 
   for (const line of lines) {
     const trimmedLine = line.trim();
@@ -25,11 +26,12 @@ const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
       continue;
     }
 
-    const parts = trimmedLine.split('|');
-    if (parts.length === 3) {
-      const surah = parseInt(parts[0], 10);
-      const ayah = parseInt(parts[1], 10);
-      const translationText = parts[2].trim();
+    const match = trimmedLine.match(lineRegex);
+
+    if (match && match.length === 4) {
+      const surah = parseInt(match[1], 10);
+      const ayah = parseInt(match[2], 10);
+      const translationText = match[3].trim();
 
       if (!isNaN(surah) && !isNaN(ayah) && translationText) {
         if (!translation[surah]) {
