@@ -44,7 +44,8 @@ const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
   }
 
   if (parsedLines === 0) {
-    throw new Error("Failed to parse any lines from the Luganda translation file. Check file format.");
+    const fileSnippet = text.substring(0, 500);
+    throw new Error(`Failed to parse any lines. File format may be incorrect. Start of file: "${fileSnippet}"`);
   }
 
   return translation;
