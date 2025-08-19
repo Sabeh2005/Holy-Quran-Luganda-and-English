@@ -9,6 +9,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { lugandaSurahNames } from "@/data/lugandaSurahNames";
 
 const fetchSurahs = async (): Promise<SurahInfo[]> => {
   const response = await fetch("https://api.alquran.cloud/v1/surah");
@@ -16,7 +17,11 @@ const fetchSurahs = async (): Promise<SurahInfo[]> => {
     throw new Error("Network response was not ok");
   }
   const data = await response.json();
-  return data.data;
+  const surahsWithLuganda: SurahInfo[] = data.data.map((surah: SurahInfo) => ({
+    ...surah,
+    lugandaName: lugandaSurahNames[surah.number - 1] || "",
+  }));
+  return surahsWithLuganda;
 };
 
 type FilterType = "all" | "meccan" | "medinan";
@@ -48,6 +53,7 @@ const SurahList = () => {
         surah.englishName.toLowerCase().includes(term) ||
         surah.name.toLowerCase().includes(term) ||
         surah.englishNameTranslation.toLowerCase().includes(term) ||
+        (surah.lugandaName && surah.lugandaName.toLowerCase().includes(term)) ||
         String(surah.number).includes(term)
       );
     });

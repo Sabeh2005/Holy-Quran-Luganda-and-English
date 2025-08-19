@@ -17,7 +17,10 @@ const SurahListItemGrid = ({ surah }: SurahListItemGridProps) => {
           </div>
           <div className="flex-grow grid grid-cols-2 items-center gap-x-2">
             {/* Row 1 */}
-            <h3 className="font-bold text-lg">{surah.englishName}</h3>
+            <div>
+              <h3 className="font-bold text-lg">{surah.englishName}</h3>
+              {surah.lugandaName && <p className="text-sm text-muted-foreground">{surah.lugandaName}</p>}
+            </div>
             <p className="font-arabic text-2xl text-primary justify-self-end">{surah.name}</p>
             
             {/* Row 2 */}

@@ -17,7 +17,8 @@ const SurahListItemList = ({ surah }: SurahListItemListProps) => {
           </div>
           <div className="flex-grow">
             <h3 className="font-bold text-lg">{surah.englishName}</h3>
-            <div className="flex items-center gap-2 text-muted-foreground text-sm flex-wrap">
+            {surah.lugandaName && <p className="text-sm text-muted-foreground">{surah.lugandaName}</p>}
+            <div className="flex items-center gap-2 text-muted-foreground text-sm flex-wrap mt-1">
               <span>{surah.englishNameTranslation}</span>
               <Badge variant="outline" className="capitalize">{surah.revelationType}</Badge>
             </div>

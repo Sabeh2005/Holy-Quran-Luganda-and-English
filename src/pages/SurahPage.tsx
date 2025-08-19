@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ChevronLeft, ChevronRight, Play } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { lugandaSurahNames } from "@/data/lugandaSurahNames";
 
 const fetchSurahDetail = async (surahId: number) => {
   const response = await fetch(`https://api.alquran.cloud/v1/surah/${surahId}/editions/quran-uthmani,en.sahih`);
@@ -29,6 +30,7 @@ const fetchSurahDetail = async (surahId: number) => {
     numberOfAyahs: arabicEdition.numberOfAyahs,
     revelationType: arabicEdition.revelationType,
     ayahs: combinedAyahs,
+    lugandaName: lugandaSurahNames[surahId - 1] || "",
   };
   return surahInfo;
 };
@@ -115,6 +117,7 @@ const SurahPage = () => {
       </div>
       <div className="text-center mb-8">
         <h1 className="text-3xl md:text-4xl font-bold">{surah?.englishName}</h1>
+        {surah?.lugandaName && <p className="text-xl md:text-2xl text-muted-foreground mt-1">{surah.lugandaName}</p>}
         <p className="text-4xl md:text-5xl font-arabic my-2 text-primary">{surah?.name}</p>
         <p className="text-muted-foreground text-lg">{surah?.englishNameTranslation}</p>
         <div className="flex justify-center items-center gap-4 mt-4 text-muted-foreground">

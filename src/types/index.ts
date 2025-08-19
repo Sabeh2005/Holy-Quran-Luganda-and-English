@@ -5,6 +5,7 @@ export interface SurahInfo {
   englishNameTranslation: string;
   revelationType: string;
   numberOfAyahs: number;
+  lugandaName?: string;
 }
 
 export interface Ayah {
