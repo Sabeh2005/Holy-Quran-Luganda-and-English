@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Play, Pause, Bookmark, Copy, Share2 } from "lucide-react";
 import { Ayah } from "@/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useLugandaTranslation } from "@/hooks/useLugandaTranslation";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -20,7 +20,6 @@ const AyahListItem = ({ ayah, surahNumber, isPlaying, onPlay }: AyahListItemProp
 
   const handleCopy = () => {
     const lugandaText = lugandaTranslation?.[surahNumber]?.[ayah.numberInSurah] || "[Luganda translation not available]";
-
     const textToCopy = `${ayah.text}\n\n${ayah.englishText}\n\n${lugandaText}\n\n- Surah ${surahNumber}, Verse ${ayah.numberInSurah}`;
     navigator.clipboard.writeText(textToCopy);
     toast({
@@ -36,9 +35,7 @@ const AyahListItem = ({ ayah, surahNumber, isPlaying, onPlay }: AyahListItemProp
     if (isError) {
       return <p className="text-destructive italic">Failed to load Luganda translation.</p>;
     }
-
     const translation = lugandaTranslation?.[surahNumber]?.[ayah.numberInSurah];
-    
     if (translation) {
       return <p className="text-muted-foreground">{translation}</p>;
     }
