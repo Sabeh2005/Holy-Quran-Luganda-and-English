@@ -9,13 +9,11 @@ const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
   if (!response.ok) {
     throw new Error("Failed to fetch Luganda translation file.");
   }
-  let text = await response.text();
-
-  // Remove Byte Order Mark (BOM) if it exists
-  if (text.charCodeAt(0) === 0xFEFF) {
-    text = text.slice(1);
-  }
   
+  // Use blob().text() to better handle character encoding, which was the root cause of the parsing failure.
+  const blob = await response.blob();
+  const text = await blob.text();
+
   const translation: LugandaTranslation = {};
   const lines = text.split(/\r\n?|\n/);
   let validLines = 0;
@@ -53,8 +51,8 @@ const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
 
 export const useLugandaTranslation = () => {
   return useQuery<LugandaTranslation>({
-    // Changed queryKey to v2 to invalidate any potentially corrupt cache.
-    queryKey: ["lugandaTranslation", "v2"],
+    // Bumped queryKey to v3 to ensure the new fetching logic is used.
+    queryKey: ["lugandaTranslation", "v3"],
     queryFn: fetchAndParseTranslation,
     staleTime: Infinity, 
     gcTime: Infinity,
