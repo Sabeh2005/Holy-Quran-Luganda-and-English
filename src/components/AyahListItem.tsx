@@ -18,27 +18,10 @@ const AyahListItem = ({ ayah, surahNumber, isPlaying, onPlay }: AyahListItemProp
   const { toast } = useToast();
   const { data: lugandaTranslation, isLoading, isError } = useLugandaTranslation();
 
-  // The API includes Basmala as the first verse for all Surahs except 9.
-  // The translation file omits the Basmala, causing an index mismatch.
-  const isBasmala = surahNumber !== 9 && ayah.numberInSurah === 1;
-
-  // Adjust the Ayah number for translation lookup.
-  const getTranslationAyahNumber = () => {
-    // Surah 9 (At-Tawbah) has no Basmala, so indices match.
-    if (surahNumber === 9) {
-      return ayah.numberInSurah;
-    }
-    // For other surahs, the translation file index is one less than the API's verse number.
-    return ayah.numberInSurah - 1;
-  };
-
   const handleCopy = () => {
-    const translationAyahNumber = getTranslationAyahNumber();
-    const lugandaText = isBasmala
-      ? ""
-      : lugandaTranslation?.[surahNumber]?.[translationAyahNumber] || "[Luganda translation not available]";
+    const lugandaText = lugandaTranslation?.[surahNumber]?.[ayah.numberInSurah] || "[Luganda translation not available]";
 
-    const textToCopy = `${ayah.text}\n\n${ayah.englishText}${lugandaText ? `\n\n${lugandaText}` : ''}\n\n- Surah ${surahNumber}, Verse ${ayah.numberInSurah}`;
+    const textToCopy = `${ayah.text}\n\n${ayah.englishText}\n\n${lugandaText}\n\n- Surah ${surahNumber}, Verse ${ayah.numberInSurah}`;
     navigator.clipboard.writeText(textToCopy);
     toast({
       title: "Copied to clipboard!",
@@ -53,12 +36,8 @@ const AyahListItem = ({ ayah, surahNumber, isPlaying, onPlay }: AyahListItemProp
     if (isError) {
       return <p className="text-destructive italic">Failed to load Luganda translation.</p>;
     }
-    if (isBasmala) {
-      return <p className="text-muted-foreground italic">[Translation for Basmala not provided]</p>;
-    }
 
-    const translationAyahNumber = getTranslationAyahNumber();
-    const translation = lugandaTranslation?.[surahNumber]?.[translationAyahNumber];
+    const translation = lugandaTranslation?.[surahNumber]?.[ayah.numberInSurah];
     
     if (translation) {
       return <p className="text-muted-foreground">{translation}</p>;
