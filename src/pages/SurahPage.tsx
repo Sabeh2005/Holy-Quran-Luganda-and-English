@@ -10,13 +10,20 @@ import { Badge } from "@/components/ui/badge";
 import { lugandaSurahNames } from "@/data/lugandaSurahNames";
 
 const fetchSurahDetail = async (surahId: number) => {
-  const response = await fetch(`https://api.alquran.cloud/v1/surah/${surahId}/editions/quran-uthmani,en.sahih`);
-  if (!response.ok) {
+  const [arabicRes, englishRes] = await Promise.all([
+    fetch(`https://api.alquran.cloud/v1/surah/${surahId}/quran-uthmani`),
+    fetch(`https://api.alquran.cloud/v1/surah/${surahId}/en.sahih`)
+  ]);
+
+  if (!arabicRes.ok || !englishRes.ok) {
     throw new Error("Failed to fetch Surah details.");
   }
-  const data = await response.json();
-  const arabicEdition = data.data[0];
-  const englishEdition = data.data[1];
+
+  const arabicData = await arabicRes.json();
+  const englishData = await englishRes.json();
+
+  const arabicEdition = arabicData.data;
+  const englishEdition = englishData.data;
 
   const combinedAyahs: Ayah[] = arabicEdition.ayahs.map((ayah: any, index: number) => ({
     ...ayah,
