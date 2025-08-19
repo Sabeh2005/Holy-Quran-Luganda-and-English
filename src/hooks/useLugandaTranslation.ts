@@ -5,7 +5,7 @@ type LugandaTranslation = Record<number, Record<number, string>>;
 const LUGANDA_TRANSLATION_URL = "https://ndlvawhavwyvqergzvng.supabase.co/storage/v1/object/public/Luganda%20Quran/Holy%20Quran%20Luganda.txt";
 
 const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
-  const response = await fetch(LUGANDA_TRANSLATION_URL);
+  const response = await fetch(LUGANDA_TRANSLATION_URL, { cache: "no-store" });
   if (!response.ok) {
     throw new Error("Failed to fetch Luganda translation file.");
   }
