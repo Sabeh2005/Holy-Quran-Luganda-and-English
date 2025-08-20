@@ -26,41 +26,10 @@ const fetchSurahDetail = async (surahId: number) => {
   const arabicEdition = arabicData.data;
   const englishEdition = englishData.data;
 
-  let combinedAyahs: Ayah[] = arabicEdition.ayahs.map((ayah: any, index: number) => ({
+  const combinedAyahs: Ayah[] = arabicEdition.ayahs.map((ayah: any, index: number) => ({
     ...ayah,
     englishText: englishEdition.ayahs[index].text,
   }));
-
-  // Special handling for Surah Baqarah (id=2)
-  if (surahId === 2) {
-    // Create Alif Lam Mim as verse 2
-    const alifLamMim: Ayah = {
-      number: 2,
-      audio: "",
-      text: "الم",
-      englishText: "Alif Lam Mim",
-      numberInSurah: 2,
-      juz: 1,
-      manzil: 1,
-      page: 2,
-      ruku: 1,
-      hizbQuarter: 1,
-      sajda: false
-    };
-
-    // Insert Alif Lam Mim as verse 2
-    combinedAyahs = [
-      combinedAyahs[0], // Bismillah remains verse 1
-      alifLamMim,        // Alif Lam Mim as verse 2
-      ...combinedAyahs.slice(1).map(ayah => ({
-        ...ayah,
-        numberInSurah: ayah.numberInSurah + 1 // Increment verse numbers after verse 2
-      }))
-    ];
-
-    // Update total verses to 287
-    arabicEdition.numberOfAyahs = 287;
-  }
 
   const surahInfo: Partial<SurahInfo> & { ayahs: Ayah[] } = {
     name: arabicEdition.name,
@@ -176,14 +145,13 @@ const SurahPage = () => {
       <div className="space-y-4">
         {surah?.ayahs.map((ayah) => (
           <AyahListItem
-            key={`${id}-${ayah.numberInSurah}`}
+            key={ayah.number}
             ayah={ayah}
             surahNumber={id}
             displayVerseNumber={ayah.numberInSurah}
             isPlaying={isPlaying && activeAyah?.number === ayah.number}
             onPlay={() => handlePlayAyah(ayah)}
             lugandaTranslation={lugandaTranslation}
-            isBismillah={ayah.numberInSurah === 1 && ayah.text.includes("بِسْمِ")}
           />
         ))}
       </div>
