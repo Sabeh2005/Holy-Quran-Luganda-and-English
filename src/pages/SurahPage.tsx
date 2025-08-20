@@ -29,19 +29,21 @@ const fetchSurahDetail = async (surahId: number) => {
   let combinedAyahs: Ayah[] = [];
   let numberOfAyahs = arabicEdition.numberOfAyahs;
 
-  // Add Bismillah as verse 1 for all Surahs except Surah 9
-  if (surahId !== 9) {
+  // Add Bismillah as verse 1 ONLY for Surahs that need it (all except 1 and 9)
+  const shouldAddBismillah = surahId !== 1 && surahId !== 9;
+  
+  if (shouldAddBismillah) {
     combinedAyahs.push({
       number: 0,
       audio: "",
       text: "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
       englishText: "In the name of Allah, the Most Gracious, the Most Merciful.",
       numberInSurah: 1,
-      juz: 1,
-      manzil: 1,
-      page: 1,
-      ruku: 1,
-      hizbQuarter: 1,
+      juz: arabicEdition.ayahs[0].juz,
+      manzil: arabicEdition.ayahs[0].manzil,
+      page: arabicEdition.ayahs[0].page,
+      ruku: arabicEdition.ayahs[0].ruku,
+      hizbQuarter: arabicEdition.ayahs[0].hizbQuarter,
       sajda: false
     });
     numberOfAyahs += 1;
@@ -52,7 +54,7 @@ const fetchSurahDetail = async (surahId: number) => {
     combinedAyahs.push({
       ...ayah,
       englishText: englishEdition.ayahs[index].text,
-      numberInSurah: surahId !== 9 ? ayah.numberInSurah + 1 : ayah.numberInSurah
+      numberInSurah: shouldAddBismillah ? ayah.numberInSurah + 1 : ayah.numberInSurah
     });
   });
 
