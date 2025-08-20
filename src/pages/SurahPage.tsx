@@ -107,36 +107,42 @@ const SurahPage = () => {
 
   useEffect(() => {
     const audio = ayahAudioRef.current;
-    if (audio) {
-      if (isAyahPlaying && activeAyah) {
-        if (audio.src !== activeAyah.audio) {
-          audio.src = activeAyah.audio;
-        }
-        audio.play().catch(e => {
-          console.error("Ayah audio play failed", e);
-          setIsAyahPlaying(false);
-        });
-      } else {
-        audio.pause();
+    if (!audio) return;
+
+    if (isAyahPlaying && activeAyah?.audio) {
+      if (audio.src !== activeAyah.audio) {
+        audio.src = activeAyah.audio;
+        audio.load();
       }
+      audio.play().catch(e => {
+        console.error("Ayah audio play failed", e);
+        setIsAyahPlaying(false);
+      });
+    } else {
+      audio.pause();
     }
   }, [isAyahPlaying, activeAyah]);
 
   useEffect(() => {
     const audio = surahAudioRef.current;
-    if (audio && misharyAudioLinks) {
+    if (!audio) return;
+
+    if (isSurahPlaying && misharyAudioLinks) {
       const surahAudioSrc = misharyAudioLinks[id - 1];
-      if (isSurahPlaying && surahAudioSrc) {
+      if (surahAudioSrc) {
         if (audio.src !== surahAudioSrc) {
           audio.src = surahAudioSrc;
+          audio.load();
         }
         audio.play().catch(e => {
           console.error("Surah audio play failed", e);
           setIsSurahPlaying(false);
         });
       } else {
-        audio.pause();
+        setIsSurahPlaying(false);
       }
+    } else {
+      audio.pause();
     }
   }, [isSurahPlaying, id, misharyAudioLinks]);
 
