@@ -29,71 +29,53 @@ const fetchSurahDetail = async (surahId: number) => {
   let combinedAyahs: Ayah[] = [];
   let numberOfAyahs = arabicEdition.numberOfAyahs;
 
-  // Ahmadi Muslim Quran system:
-  // - Surah 1 (Al-Fatihah): 7 verses (Bismillah is verse 1)
-  // - Surah 9 (At-Tawbah): No Bismillah
-  // - All other Surahs: Bismillah is verse 1, total verses = original + 1
-  const shouldAddBismillah = surahId !== 9;
-  
-  if (shouldAddBismillah) {
-    // For Surah Al-Fatihah (1), the API already includes Bismillah as verse 1
-    // so we don't need to add it again
-    if (surahId !== 1) {
+  // Handle Surah 1 (Al-Fatihah) and 9 (At-Tawbah) as they are from the API
+  if (surahId === 1 || surahId === 9) {
+    combinedAyahs = arabicEdition.ayahs.map((ayah: any, index: number) => ({
+      ...ayah,
+      englishText: englishEdition.ayahs[index].text,
+    }));
+  } else {
+    // For all other Surahs, split the Bismillah from the first verse
+    numberOfAyahs += 1; // Total verses will be original + 1
+
+    const firstApiAyah = arabicEdition.ayahs[0];
+    const firstApiEnglishAyah = englishEdition.ayahs[0];
+    
+    const bismillahText = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ";
+    const bismillahRegex = new RegExp(`^${bismillahText}\\s*`);
+
+    // 1. Create the Bismillah as verse 1
+    combinedAyahs.push({
+      ...firstApiAyah,
+      number: firstApiAyah.number - 1, // Give it a unique number for React key purposes
+      audio: "", // No specific audio for just Bismillah in this context
+      text: bismillahText,
+      englishText: "In the name of Allah, the Gracious, the Merciful.",
+      numberInSurah: 1,
+      sajda: false,
+    });
+
+    // 2. Create the actual first verse as verse 2
+    const actualFirstVerseText = firstApiAyah.text.replace(bismillahRegex, "").trim();
+    combinedAyahs.push({
+      ...firstApiAyah,
+      text: actualFirstVerseText,
+      englishText: firstApiEnglishAyah.text,
+      numberInSurah: 2,
+    });
+
+    // 3. Add the rest of the verses, incrementing their numberInSurah
+    for (let i = 1; i < arabicEdition.ayahs.length; i++) {
+      const originalAyah = arabicEdition.ayahs[i];
+      const englishAyah = englishEdition.ayahs[i];
       combinedAyahs.push({
-        number: 0,
-        audio: "",
-        text: "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
-        englishText: "In the name of Allah, the Most Gracious, the Most Merciful.",
-        numberInSurah: 1,
-        juz: arabicEdition.ayahs[0].juz,
-        manzil: arabicEdition.ayahs[0].manzil,
-        page: arabicEdition.ayahs[0].page,
-        ruku: arabicEdition.ayahs[0].ruku,
-        hizbQuarter: arabicEdition.ayahs[0].hizbQuarter,
-        sajda: false
+        ...originalAyah,
+        englishText: englishAyah.text,
+        numberInSurah: originalAyah.numberInSurah + 1,
       });
-      numberOfAyahs += 1;
     }
   }
-
-  // Add the rest of the verses with adjusted numbering
-  arabicEdition.ayahs.forEach((ayah: any, index: number) => {
-    // For Surah Al-Fatihah, use the existing verse numbering
-    let verseNumber = ayah.numberInSurah;
-    let arabicText = ayah.text;
-    let englishText = englishEdition.ayahs[index].text;
-
-    // For other Surahs (except 9), adjust numbering
-    if (surahId !== 1 && surahId !== 9) {
-      verseNumber = ayah.numberInSurah + 1;
-    }
-
-    // For Surah Al-Fatihah, we keep the text as is
-    if (surahId === 1) {
-      combinedAyahs.push({
-        ...ayah,
-        englishText,
-        numberInSurah: verseNumber
-      });
-    } else {
-      // For other Surahs, we need to remove Bismillah from the first verse
-      // since we've already added it separately
-      if (index === 0 && surahId !== 9) {
-        // Remove Bismillah from the beginning of the verse if it exists
-        const bismillah = "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ";
-        if (arabicText.startsWith(bismillah)) {
-          arabicText = arabicText.replace(bismillah, "").trim();
-        }
-      }
-      
-      combinedAyahs.push({
-        ...ayah,
-        text: arabicText,
-        englishText,
-        numberInSurah: verseNumber
-      });
-    }
-  });
 
   const surahInfo: Partial<SurahInfo> & { ayahs: Ayah[] } = {
     name: arabicEdition.name,
