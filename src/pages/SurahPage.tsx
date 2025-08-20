@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { lugandaSurahNames } from "@/data/lugandaSurahNames";
 import { useLugandaTranslation } from "@/hooks/useLugandaTranslation";
 import { useMisharyAudio } from "@/hooks/useMisharyAudio";
+import { showError } from "@/utils/toast";
 
 const fetchSurahDetail = async (surahId: number) => {
   const [arabicRes, englishRes] = await Promise.all([
@@ -112,7 +113,6 @@ const SurahPage = () => {
     if (isAyahPlaying && activeAyah?.audio) {
       if (audio.src !== activeAyah.audio) {
         audio.src = activeAyah.audio;
-        audio.load();
       }
       audio.play().catch(e => {
         console.error("Ayah audio play failed", e);
@@ -125,29 +125,16 @@ const SurahPage = () => {
 
   useEffect(() => {
     const audio = surahAudioRef.current;
-    if (!audio) return;
-
-    if (isSurahPlaying && misharyAudioLinks) {
-      const surahAudioSrc = misharyAudioLinks[id - 1];
-      if (surahAudioSrc) {
-        if (audio.src !== surahAudioSrc) {
-          audio.src = surahAudioSrc;
-          audio.load();
-        }
-        audio.play().catch(e => {
-          console.error("Surah audio play failed", e);
-          setIsSurahPlaying(false);
-        });
-      } else {
-        setIsSurahPlaying(false);
-      }
-    } else {
-      audio.pause();
-    }
-  }, [isSurahPlaying, id, misharyAudioLinks]);
+    return () => {
+      audio?.pause();
+    };
+  }, [id]);
 
   const handlePlayAyah = (ayah: Ayah) => {
-    if (isSurahPlaying) setIsSurahPlaying(false);
+    if (isSurahPlaying) {
+      surahAudioRef.current?.pause();
+      setIsSurahPlaying(false);
+    }
     if (activeAyah?.number === ayah.number) {
       setIsAyahPlaying(!isAyahPlaying);
     } else {
@@ -157,8 +144,40 @@ const SurahPage = () => {
   };
 
   const handlePlaySurah = () => {
-    if (isAyahPlaying) setIsAyahPlaying(false);
-    setIsSurahPlaying(!isSurahPlaying);
+    if (isAyahPlaying) {
+      ayahAudioRef.current?.pause();
+      setIsAyahPlaying(false);
+      setActiveAyah(null);
+    }
+
+    const audio = surahAudioRef.current;
+    if (!audio || !misharyAudioLinks) {
+      showError("Audio data is not loaded yet.");
+      return;
+    }
+
+    if (isSurahPlaying) {
+      audio.pause();
+      setIsSurahPlaying(false);
+    } else {
+      const surahAudioSrc = misharyAudioLinks[id - 1];
+      if (surahAudioSrc) {
+        if (audio.src !== surahAudioSrc) {
+          audio.src = surahAudioSrc;
+        }
+        audio.play()
+          .then(() => {
+            setIsSurahPlaying(true);
+          })
+          .catch((e) => {
+            console.error("Surah audio play failed", e);
+            showError("Audio playback failed. Your browser might be blocking it.");
+            setIsSurahPlaying(false);
+          });
+      } else {
+        showError("Could not find audio for this Surah.");
+      }
+    }
   };
 
   if (isNaN(id)) {
