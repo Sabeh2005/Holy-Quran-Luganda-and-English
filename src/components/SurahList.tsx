@@ -3,13 +3,16 @@ import { SurahInfo } from "@/types";
 import SurahListItemGrid from "./SurahListItemGrid";
 import SurahListItemList from "./SurahListItemList";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useState } from "react";
-import { LayoutGrid, List, Search, Filter } from "lucide-react";
+import { useState, useEffect } from "react";
+import { LayoutGrid, List, Search, Filter, Mic } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { lugandaSurahNames } from "@/data/lugandaSurahNames";
+import { useSettings } from "@/context/SettingsContext";
+import { useVoiceSearch } from "@/hooks/useVoiceSearch";
+import { showError } from "@/utils/toast";
 
 const fetchSurahs = async (): Promise<SurahInfo[]> => {
   const response = await fetch("https://api.alquran.cloud/v1/surah");
@@ -36,6 +39,21 @@ const SurahList = () => {
   const [filter, setFilter] = useState<FilterType>("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [jumpToSurah, setJumpToSurah] = useState<string>("");
+
+  const { voiceLanguage } = useSettings();
+  const { isListening, transcript, startListening, error: voiceError } = useVoiceSearch(voiceLanguage);
+
+  useEffect(() => {
+    if (transcript) {
+      setSearchTerm(transcript);
+    }
+  }, [transcript]);
+
+  useEffect(() => {
+    if (voiceError) {
+      showError(voiceError);
+    }
+  }, [voiceError]);
 
   const filteredSurahs = surahs
     ?.filter((surah) => {
@@ -86,10 +104,19 @@ const SurahList = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input
             placeholder="Search verses, Surahs, or translations..."
-            className="pl-10 h-11"
+            className="pl-10 pr-12 h-11"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={startListening}
+            disabled={isListening}
+            className="absolute right-1 top-1/2 -translate-y-1/2 h-9 w-9"
+          >
+            <Mic className={`h-5 w-5 ${isListening ? 'text-primary animate-pulse' : 'text-muted-foreground'}`} />
+          </Button>
         </div>
         <Select onValueChange={(value) => setJumpToSurah(value)} value={jumpToSurah}>
           <SelectTrigger className="h-11">

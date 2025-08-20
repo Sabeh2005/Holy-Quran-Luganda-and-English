@@ -43,6 +43,18 @@
     --radius: 0.5rem;
   }
 
+  [data-theme-color="blue"] {
+    --primary: 221.2 83.2% 53.3%; /* Blue */
+    --primary-foreground: 210 40% 98%;
+    --ring: 221.2 83.2% 53.3%; /* Blue */
+  }
+
+  [data-theme-color="purple"] {
+    --primary: 262.1 83.3% 57.8%; /* Purple */
+    --primary-foreground: 210 40% 98%;
+    --ring: 262.1 83.3% 57.8%; /* Purple */
+  }
+
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
@@ -71,6 +83,18 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 166 70% 40%; /* Custom Green Dark */
+  }
+
+  .dark[data-theme-color="blue"] {
+    --primary: 217.2 91.2% 59.8%; /* Blue Dark */
+    --primary-foreground: 210 40% 98%;
+    --ring: 217.2 91.2% 59.8%; /* Blue Dark */
+  }
+
+  .dark[data-theme-color="purple"] {
+    --primary: 263.4 95.2% 58.2%; /* Purple Dark */
+    --primary-foreground: 210 40% 98%;
+    --ring: 263.4 95.2% 58.2%; /* Purple Dark */
   }
 }
 

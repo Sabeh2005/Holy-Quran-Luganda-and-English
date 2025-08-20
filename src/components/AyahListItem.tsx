@@ -5,6 +5,7 @@ import { Ayah } from "@/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useSettings } from "@/context/SettingsContext";
 
 type LugandaTranslationData = Record<number, Record<number, string>> | undefined;
 
@@ -19,6 +20,7 @@ interface AyahListItemProps {
 
 const AyahListItem = ({ ayah, surahNumber, displayVerseNumber, isPlaying, onPlay, lugandaTranslation }: AyahListItemProps) => {
   const { toast } = useToast();
+  const { arabicFontSize, translationFontSize } = useSettings();
 
   const handleCopy = () => {
     const lugandaText = lugandaTranslation?.[surahNumber]?.[ayah.numberInSurah] || "[Luganda translation not available]";
@@ -39,10 +41,10 @@ const AyahListItem = ({ ayah, surahNumber, displayVerseNumber, isPlaying, onPlay
     const translation = lugandaTranslation?.[surahNumber]?.[ayah.numberInSurah];
     
     if (translation) {
-      return <p className="text-muted-foreground">{translation}</p>;
+      return <p className="text-muted-foreground" style={{ fontSize: `${translationFontSize}px` }}>{translation}</p>;
     }
     
-    return <p className="text-muted-foreground italic">[Luganda translation not available for this verse]</p>;
+    return <p className="text-muted-foreground italic" style={{ fontSize: `${translationFontSize}px` }}>[Luganda translation not available for this verse]</p>;
   };
 
   return (
@@ -64,7 +66,7 @@ const AyahListItem = ({ ayah, surahNumber, displayVerseNumber, isPlaying, onPlay
             </Button>
           </div>
         </div>
-        <p className="text-3xl font-arabic text-right leading-loose">{ayah.text}</p>
+        <p className="font-arabic text-right leading-loose" style={{ fontSize: `${arabicFontSize}px`, lineHeight: 1.8 }}>{ayah.text}</p>
         
         <Tabs defaultValue="luganda" className="w-full">
           <TabsList>
@@ -75,7 +77,7 @@ const AyahListItem = ({ ayah, surahNumber, displayVerseNumber, isPlaying, onPlay
             {renderLugandaContent()}
           </TabsContent>
           <TabsContent value="english" className="p-4 bg-background rounded-md mt-2">
-            <p className="text-muted-foreground">{ayah.englishText}</p>
+            <p className="text-muted-foreground" style={{ fontSize: `${translationFontSize}px` }}>{ayah.englishText}</p>
           </TabsContent>
         </Tabs>
 
