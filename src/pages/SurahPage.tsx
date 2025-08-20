@@ -113,6 +113,11 @@ const SurahPage = () => {
     }
   };
 
+  // Special handling for Surah Baqarah (id: 2)
+  const isSurahBaqarah = id === 2;
+  const bismillahAyah = isSurahBaqarah && surah?.ayahs.length > 0 ? surah.ayahs[0] : null;
+  const verseAyahs = isSurahBaqarah ? surah?.ayahs.slice(1) || [] : surah?.ayahs || [];
+
   return (
     <div className="bg-background rounded-xl p-4 md:p-8 border">
       <div className="flex justify-between items-center mb-8">
@@ -142,13 +147,22 @@ const SurahPage = () => {
           <Play className="mr-2 h-4 w-4" /> Play Surah
         </Button>
       </div>
+      
+      {/* Special Bismillah header for Surah Baqarah */}
+      {isSurahBaqarah && bismillahAyah && (
+        <div className="text-center my-8">
+          <p className="font-arabic text-3xl">{bismillahAyah.text}</p>
+          <p className="text-muted-foreground mt-2">In the name of Allah, the Most Gracious, the Most Merciful</p>
+        </div>
+      )}
+      
       <div className="space-y-4">
-        {surah?.ayahs.map((ayah) => (
+        {verseAyahs.map((ayah) => (
           <AyahListItem
             key={ayah.number}
             ayah={ayah}
             surahNumber={id}
-            displayVerseNumber={ayah.numberInSurah}
+            displayVerseNumber={isSurahBaqarah ? ayah.numberInSurah - 1 : ayah.numberInSurah}
             isPlaying={isPlaying && activeAyah?.number === ayah.number}
             onPlay={() => handlePlayAyah(ayah)}
             lugandaTranslation={lugandaTranslation}
