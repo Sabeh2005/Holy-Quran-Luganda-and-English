@@ -33,28 +33,37 @@ const fetchSurahDetail = async (surahId: number) => {
   const shouldAddBismillah = surahId !== 9;
   
   if (shouldAddBismillah) {
-    combinedAyahs.push({
-      number: 0,
-      audio: "",
-      text: "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
-      englishText: "In the name of Allah, the Most Gracious, the Most Merciful.",
-      numberInSurah: 1,
-      juz: arabicEdition.ayahs[0].juz,
-      manzil: arabicEdition.ayahs[0].manzil,
-      page: arabicEdition.ayahs[0].page,
-      ruku: arabicEdition.ayahs[0].ruku,
-      hizbQuarter: arabicEdition.ayahs[0].hizbQuarter,
-      sajda: false
-    });
-    numberOfAyahs += 1;
+    // For Surah Al-Fatihah (1), the API already includes Bismillah as verse 1
+    // so we don't need to add it again
+    if (surahId !== 1) {
+      combinedAyahs.push({
+        number: 0,
+        audio: "",
+        text: "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
+        englishText: "In the name of Allah, the Most Gracious, the Most Merciful.",
+        numberInSurah: 1,
+        juz: arabicEdition.ayahs[0].juz,
+        manzil: arabicEdition.ayahs[0].manzil,
+        page: arabicEdition.ayahs[0].page,
+        ruku: arabicEdition.ayahs[0].ruku,
+        hizbQuarter: arabicEdition.ayahs[0].hizbQuarter,
+        sajda: false
+      });
+      numberOfAyahs += 1;
+    }
   }
 
   // Add the rest of the verses with adjusted numbering
   arabicEdition.ayahs.forEach((ayah: any, index: number) => {
+    // For Surah Al-Fatihah, use the existing verse numbering
+    const verseNumber = (surahId === 1 || !shouldAddBismillah) ? 
+      ayah.numberInSurah : 
+      ayah.numberInSurah + 1;
+      
     combinedAyahs.push({
       ...ayah,
       englishText: englishEdition.ayahs[index].text,
-      numberInSurah: shouldAddBismillah ? ayah.numberInSurah + 1 : ayah.numberInSurah
+      numberInSurah: verseNumber
     });
   });
 
