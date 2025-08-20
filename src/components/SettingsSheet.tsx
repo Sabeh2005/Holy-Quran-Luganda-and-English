@@ -10,21 +10,41 @@ interface SettingsSheetProps {
   onOpenChange: (open: boolean) => void;
 }
 
+const ColorButton = ({ color, name, activeColor, setColor }: { color: string, name: string, activeColor: string, setColor: (color: string) => void }) => (
+  <Button
+    variant={activeColor === color ? 'default' : 'outline'}
+    onClick={() => setColor(color)}
+    className="flex-1"
+  >
+    {name}
+  </Button>
+);
+
 export const SettingsSheet = ({ open, onOpenChange }: SettingsSheetProps) => {
   const {
-    arabicFontSize,
-    setArabicFontSize,
-    translationFontSize,
-    setTranslationFontSize,
-    themeColor,
-    setThemeColor,
-    voiceLanguage,
-    setVoiceLanguage
+    arabicFontSize, setArabicFontSize,
+    translationFontSize, setTranslationFontSize,
+    themeColor, setThemeColor,
+    voiceLanguage, setVoiceLanguage,
+    arabicFontColor, setArabicFontColor,
+    translationFontColor, setTranslationFontColor
   } = useSettings();
+
+  const arabicColors = [
+    { name: "Default", value: "" },
+    { name: "Gold", value: "#c59b43" },
+    { name: "Green", value: "#4f7942" },
+  ];
+
+  const translationColors = [
+    { name: "Default", value: "" },
+    { name: "Slate", value: "#708090" },
+    { name: "Blue", value: "#4682B4" },
+  ];
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent>
+      <SheetContent className="overflow-y-auto">
         <SheetHeader>
           <SheetTitle>Settings</SheetTitle>
           <SheetDescription>
@@ -48,11 +68,23 @@ export const SettingsSheet = ({ open, onOpenChange }: SettingsSheetProps) => {
             <Slider
               id="translation-font-size"
               min={12}
-              max={24}
+              max={60}
               step={1}
               value={[translationFontSize]}
               onValueChange={(value) => setTranslationFontSize(value[0])}
             />
+          </div>
+          <div className="grid gap-3">
+            <Label>Arabic Font Color</Label>
+            <div className="flex gap-2 flex-wrap">
+              {arabicColors.map(c => <ColorButton key={c.name} color={c.value} name={c.name} activeColor={arabicFontColor} setColor={setArabicFontColor} />)}
+            </div>
+          </div>
+          <div className="grid gap-3">
+            <Label>Translation Font Color</Label>
+            <div className="flex gap-2 flex-wrap">
+              {translationColors.map(c => <ColorButton key={c.name} color={c.value} name={c.name} activeColor={translationFontColor} setColor={setTranslationFontColor} />)}
+            </div>
           </div>
           <div className="grid gap-3">
             <Label>Theme Color</Label>

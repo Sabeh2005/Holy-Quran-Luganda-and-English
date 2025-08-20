@@ -1,11 +1,14 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Play, Pause, Bookmark, Copy, Share2 } from "lucide-react";
+import { Play, Pause, Bookmark, Copy, Share2, Sparkles } from "lucide-react";
 import { Ayah } from "@/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSettings } from "@/context/SettingsContext";
+import { useHighlight } from "@/context/HighlightContext";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { HighlightPopover } from "./HighlightPopover";
 
 type LugandaTranslationData = Record<number, Record<number, string>> | undefined;
 
@@ -20,7 +23,10 @@ interface AyahListItemProps {
 
 const AyahListItem = ({ ayah, surahNumber, displayVerseNumber, isPlaying, onPlay, lugandaTranslation }: AyahListItemProps) => {
   const { toast } = useToast();
-  const { arabicFontSize, translationFontSize } = useSettings();
+  const { arabicFontSize, translationFontSize, arabicFontColor, translationFontColor } = useSettings();
+  const { getHighlightColor, addHighlight, removeHighlight } = useHighlight();
+
+  const highlightColor = getHighlightColor(surahNumber, ayah.numberInSurah);
 
   const handleCopy = () => {
     const lugandaText = lugandaTranslation?.[surahNumber]?.[ayah.numberInSurah] || "[Luganda translation not available]";
@@ -41,14 +47,17 @@ const AyahListItem = ({ ayah, surahNumber, displayVerseNumber, isPlaying, onPlay
     const translation = lugandaTranslation?.[surahNumber]?.[ayah.numberInSurah];
     
     if (translation) {
-      return <p className="text-muted-foreground" style={{ fontSize: `${translationFontSize}px` }}>{translation}</p>;
+      return <p className="text-muted-foreground" style={{ fontSize: `${translationFontSize}px`, color: translationFontColor || undefined }}>{translation}</p>;
     }
     
-    return <p className="text-muted-foreground italic" style={{ fontSize: `${translationFontSize}px` }}>[Luganda translation not available for this verse]</p>;
+    return <p className="text-muted-foreground italic" style={{ fontSize: `${translationFontSize}px`, color: translationFontColor || undefined }}>[Luganda translation not available for this verse]</p>;
   };
 
   return (
-    <Card className="bg-muted/30 border-0">
+    <Card 
+      className="bg-muted/30 border-0 transition-colors"
+      style={{ backgroundColor: highlightColor }}
+    >
       <CardContent className="p-4 space-y-4">
         <div className="flex justify-between items-center text-sm text-primary">
           <div className="flex items-center gap-2">
@@ -61,12 +70,26 @@ const AyahListItem = ({ ayah, surahNumber, displayVerseNumber, isPlaying, onPlay
             <Button onClick={onPlay} variant="ghost" size="icon">
               {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
             </Button>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Sparkles className="h-5 w-5" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto">
+                <HighlightPopover 
+                  onColorSelect={(color) => addHighlight(surahNumber, ayah.numberInSurah, color)}
+                  onRemove={() => removeHighlight(surahNumber, ayah.numberInSurah)}
+                  currentColor={highlightColor}
+                />
+              </PopoverContent>
+            </Popover>
             <Button variant="ghost" size="icon">
               <Bookmark className="h-5 w-5" />
             </Button>
           </div>
         </div>
-        <p className="font-arabic text-right leading-loose" style={{ fontSize: `${arabicFontSize}px`, lineHeight: 1.8 }}>{ayah.text}</p>
+        <p className="font-arabic text-right leading-loose" style={{ fontSize: `${arabicFontSize}px`, lineHeight: 1.8, color: arabicFontColor || undefined }}>{ayah.text}</p>
         
         <Tabs defaultValue="luganda" className="w-full">
           <TabsList>
@@ -77,7 +100,7 @@ const AyahListItem = ({ ayah, surahNumber, displayVerseNumber, isPlaying, onPlay
             {renderLugandaContent()}
           </TabsContent>
           <TabsContent value="english" className="p-4 bg-background rounded-md mt-2">
-            <p className="text-muted-foreground" style={{ fontSize: `${translationFontSize}px` }}>{ayah.englishText}</p>
+            <p className="text-muted-foreground" style={{ fontSize: `${translationFontSize}px`, color: translationFontColor || undefined }}>{ayah.englishText}</p>
           </TabsContent>
         </Tabs>
 

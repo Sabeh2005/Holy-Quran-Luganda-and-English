@@ -5,10 +5,11 @@ import { Ayah, SurahInfo } from "@/types";
 import AyahListItem from "@/components/AyahListItem";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ChevronLeft, ChevronRight, Play } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Play, Pause } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { lugandaSurahNames } from "@/data/lugandaSurahNames";
 import { useLugandaTranslation } from "@/hooks/useLugandaTranslation";
+import { useMisharyAudio } from "@/hooks/useMisharyAudio";
 
 const fetchSurahDetail = async (surahId: number) => {
   const [arabicRes, englishRes] = await Promise.all([
@@ -29,15 +30,13 @@ const fetchSurahDetail = async (surahId: number) => {
   let combinedAyahs: Ayah[] = [];
   let numberOfAyahs = arabicEdition.numberOfAyahs;
 
-  // Handle Surah 1 (Al-Fatihah) and 9 (At-Tawbah) as they are from the API
   if (surahId === 1 || surahId === 9) {
     combinedAyahs = arabicEdition.ayahs.map((ayah: any, index: number) => ({
       ...ayah,
       englishText: englishEdition.ayahs[index].text,
     }));
   } else {
-    // For all other Surahs, split the Bismillah from the first verse
-    numberOfAyahs += 1; // Total verses will be original + 1
+    numberOfAyahs += 1; 
 
     const firstApiAyah = arabicEdition.ayahs[0];
     const firstApiEnglishAyah = englishEdition.ayahs[0];
@@ -45,18 +44,16 @@ const fetchSurahDetail = async (surahId: number) => {
     const bismillahText = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ";
     const bismillahRegex = new RegExp(`^${bismillahText}\\s*`);
 
-    // 1. Create the Bismillah as verse 1
     combinedAyahs.push({
       ...firstApiAyah,
-      number: firstApiAyah.number - 1, // Give it a unique number for React key purposes
-      audio: "", // No specific audio for just Bismillah in this context
+      number: firstApiAyah.number - 1,
+      audio: "",
       text: bismillahText,
       englishText: "In the name of Allah, the Gracious, the Merciful.",
       numberInSurah: 1,
       sajda: false,
     });
 
-    // 2. Create the actual first verse as verse 2
     const actualFirstVerseText = firstApiAyah.text.replace(bismillahRegex, "").trim();
     combinedAyahs.push({
       ...firstApiAyah,
@@ -65,7 +62,6 @@ const fetchSurahDetail = async (surahId: number) => {
       numberInSurah: 2,
     });
 
-    // 3. Add the rest of the verses, incrementing their numberInSurah
     for (let i = 1; i < arabicEdition.ayahs.length; i++) {
       const originalAyah = arabicEdition.ayahs[i];
       const englishAyah = englishEdition.ayahs[i];
@@ -101,31 +97,54 @@ const SurahPage = () => {
   });
 
   const { data: lugandaTranslation, isLoading: isLugandaLoading, error: lugandaError } = useLugandaTranslation();
+  const { data: misharyAudioLinks, isLoading: isMisharyLoading } = useMisharyAudio();
 
   const [activeAyah, setActiveAyah] = useState<Ayah | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const [isAyahPlaying, setIsAyahPlaying] = useState(false);
+  const [isSurahPlaying, setIsSurahPlaying] = useState(false);
+  const ayahAudioRef = useRef<HTMLAudioElement>(null);
+  const surahAudioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
-    if (audioRef.current) {
-      if (isPlaying && activeAyah) {
-        if (audioRef.current.src !== activeAyah.audio) {
-          audioRef.current.src = activeAyah.audio;
+    if (ayahAudioRef.current) {
+      if (isAyahPlaying && activeAyah) {
+        if (ayahAudioRef.current.src !== activeAyah.audio) {
+          ayahAudioRef.current.src = activeAyah.audio;
         }
-        audioRef.current.play().catch(e => console.error("Audio play failed", e));
+        ayahAudioRef.current.play().catch(e => console.error("Ayah audio play failed", e));
       } else {
-        audioRef.current.pause();
+        ayahAudioRef.current.pause();
       }
     }
-  }, [isPlaying, activeAyah]);
+  }, [isAyahPlaying, activeAyah]);
+
+  useEffect(() => {
+    if (surahAudioRef.current && misharyAudioLinks) {
+      const surahAudioSrc = misharyAudioLinks[id - 1];
+      if (isSurahPlaying && surahAudioSrc) {
+        if (surahAudioRef.current.src !== surahAudioSrc) {
+          surahAudioRef.current.src = surahAudioSrc;
+        }
+        surahAudioRef.current.play().catch(e => console.error("Surah audio play failed", e));
+      } else {
+        surahAudioRef.current.pause();
+      }
+    }
+  }, [isSurahPlaying, id, misharyAudioLinks]);
 
   const handlePlayAyah = (ayah: Ayah) => {
+    if (isSurahPlaying) setIsSurahPlaying(false);
     if (activeAyah?.number === ayah.number) {
-      setIsPlaying(!isPlaying);
+      setIsAyahPlaying(!isAyahPlaying);
     } else {
       setActiveAyah(ayah);
-      setIsPlaying(true);
+      setIsAyahPlaying(true);
     }
+  };
+
+  const handlePlaySurah = () => {
+    if (isAyahPlaying) setIsAyahPlaying(false);
+    setIsSurahPlaying(!isSurahPlaying);
   };
 
   if (isNaN(id)) {
@@ -184,8 +203,9 @@ const SurahPage = () => {
           <Badge variant="secondary">{surah?.numberOfAyahs} verses</Badge>
           <Badge variant="secondary" className="capitalize">{surah?.revelationType}</Badge>
         </div>
-        <Button className="mt-6">
-          <Play className="mr-2 h-4 w-4" /> Play Surah
+        <Button className="mt-6" onClick={handlePlaySurah} disabled={isMisharyLoading}>
+          {isSurahPlaying ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
+          {isSurahPlaying ? 'Pause Surah' : 'Play Surah'}
         </Button>
       </div>
       <div className="space-y-4">
@@ -195,13 +215,14 @@ const SurahPage = () => {
             ayah={ayah}
             surahNumber={id}
             displayVerseNumber={ayah.numberInSurah}
-            isPlaying={isPlaying && activeAyah?.number === ayah.number}
+            isPlaying={isAyahPlaying && activeAyah?.number === ayah.number}
             onPlay={() => handlePlayAyah(ayah)}
             lugandaTranslation={lugandaTranslation}
           />
         ))}
       </div>
-      <audio ref={audioRef} onEnded={() => setIsPlaying(false)} />
+      <audio ref={ayahAudioRef} onEnded={() => setIsAyahPlaying(false)} />
+      <audio ref={surahAudioRef} onEnded={() => setIsSurahPlaying(false)} />
     </div>
   );
 };

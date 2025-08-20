@@ -8,10 +8,14 @@ interface Settings {
   translationFontSize: number;
   themeColor: ThemeColor;
   voiceLanguage: VoiceLanguage;
+  arabicFontColor: string;
+  translationFontColor: string;
   setArabicFontSize: (size: number) => void;
   setTranslationFontSize: (size: number) => void;
   setThemeColor: (color: ThemeColor) => void;
   setVoiceLanguage: (lang: VoiceLanguage) => void;
+  setArabicFontColor: (color: string) => void;
+  setTranslationFontColor: (color: string) => void;
 }
 
 const SettingsContext = createContext<Settings | undefined>(undefined);
@@ -36,6 +40,8 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const [translationFontSize, setTranslationFontSize] = useState<number>(() => getInitialState("translationFontSize", 16));
   const [themeColor, setThemeColor] = useState<ThemeColor>(() => getInitialState("themeColor", "green"));
   const [voiceLanguage, setVoiceLanguage] = useState<VoiceLanguage>(() => getInitialState("voiceLanguage", "en-US"));
+  const [arabicFontColor, setArabicFontColor] = useState<string>(() => getInitialState("arabicFontColor", ""));
+  const [translationFontColor, setTranslationFontColor] = useState<string>(() => getInitialState("translationFontColor", ""));
 
   useEffect(() => {
     localStorage.setItem("arabicFontSize", JSON.stringify(arabicFontSize));
@@ -54,6 +60,14 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem("voiceLanguage", JSON.stringify(voiceLanguage));
   }, [voiceLanguage]);
 
+  useEffect(() => {
+    localStorage.setItem("arabicFontColor", JSON.stringify(arabicFontColor));
+  }, [arabicFontColor]);
+
+  useEffect(() => {
+    localStorage.setItem("translationFontColor", JSON.stringify(translationFontColor));
+  }, [translationFontColor]);
+
   // Set initial theme on mount
   useEffect(() => {
     document.documentElement.setAttribute("data-theme-color", getInitialState("themeColor", "green"));
@@ -65,10 +79,14 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       translationFontSize,
       themeColor,
       voiceLanguage,
+      arabicFontColor,
+      translationFontColor,
       setArabicFontSize,
       setTranslationFontSize,
       setThemeColor,
-      setVoiceLanguage
+      setVoiceLanguage,
+      setArabicFontColor,
+      setTranslationFontColor
     }}>
       {children}
     </SettingsContext.Provider>
