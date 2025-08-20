@@ -26,14 +26,12 @@ const fetchSurahDetail = async (surahId: number) => {
   const arabicEdition = arabicData.data;
   const englishEdition = englishData.data;
 
-  const combinedAyahs: Ayah[] = arabicEdition.ayahs.map((ayah: any, index: number) => ({
-    ...ayah,
-    englishText: englishEdition.ayahs[index].text,
-  }));
+  let combinedAyahs: Ayah[] = [];
+  let numberOfAyahs = arabicEdition.numberOfAyahs;
 
   // Add Bismillah as verse 1 for all Surahs except Surah 9
-  if (surahId !== 9 && surahId !== 1) {
-    combinedAyahs.unshift({
+  if (surahId !== 9) {
+    combinedAyahs.push({
       number: 0,
       audio: "",
       text: "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
@@ -46,13 +44,23 @@ const fetchSurahDetail = async (surahId: number) => {
       hizbQuarter: 1,
       sajda: false
     });
+    numberOfAyahs += 1;
   }
+
+  // Add the rest of the verses with adjusted numbering
+  arabicEdition.ayahs.forEach((ayah: any, index: number) => {
+    combinedAyahs.push({
+      ...ayah,
+      englishText: englishEdition.ayahs[index].text,
+      numberInSurah: surahId !== 9 ? ayah.numberInSurah + 1 : ayah.numberInSurah
+    });
+  });
 
   const surahInfo: Partial<SurahInfo> & { ayahs: Ayah[] } = {
     name: arabicEdition.name,
     englishName: arabicEdition.englishName,
     englishNameTranslation: arabicEdition.englishNameTranslation,
-    numberOfAyahs: arabicEdition.numberOfAyahs + (surahId !== 9 && surahId !== 1 ? 1 : 0),
+    numberOfAyahs,
     revelationType: arabicEdition.revelationType,
     ayahs: combinedAyahs,
     lugandaName: lugandaSurahNames[surahId - 1] || "",
