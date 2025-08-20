@@ -15,18 +15,14 @@ interface AyahListItemProps {
   isPlaying: boolean;
   onPlay: () => void;
   lugandaTranslation: LugandaTranslationData;
-  isBismillah?: boolean;
 }
 
-const AyahListItem = ({ ayah, surahNumber, displayVerseNumber, isPlaying, onPlay, lugandaTranslation, isBismillah = false }: AyahListItemProps) => {
+const AyahListItem = ({ ayah, surahNumber, displayVerseNumber, isPlaying, onPlay, lugandaTranslation }: AyahListItemProps) => {
   const { toast } = useToast();
 
   const handleCopy = () => {
-    const lugandaText = !isBismillah 
-      ? (lugandaTranslation?.[surahNumber]?.[ayah.numberInSurah] || "[Luganda translation not available]") 
-      : "";
-      
-    const textToCopy = `${ayah.text}\n\n${ayah.englishText}${lugandaText ? `\n\n${lugandaText}` : ''}\n\n- Surah ${surahNumber}, Verse ${displayVerseNumber}`;
+    const lugandaText = lugandaTranslation?.[surahNumber]?.[ayah.numberInSurah] || "[Luganda translation not available]";
+    const textToCopy = `${ayah.text}\n\n${ayah.englishText}\n\n${lugandaText}\n\n- Surah ${surahNumber}, Verse ${displayVerseNumber}`;
     
     navigator.clipboard.writeText(textToCopy);
     toast({
@@ -36,10 +32,6 @@ const AyahListItem = ({ ayah, surahNumber, displayVerseNumber, isPlaying, onPlay
   };
 
   const renderLugandaContent = () => {
-    if (isBismillah) {
-      return <p className="text-muted-foreground italic">[This is an invocation, not part of the numbered verses of the Surah text itself.]</p>;
-    }
-
     if (lugandaTranslation === undefined) {
       return <Skeleton className="h-6 w-full" />;
     }

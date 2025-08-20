@@ -31,11 +31,28 @@ const fetchSurahDetail = async (surahId: number) => {
     englishText: englishEdition.ayahs[index].text,
   }));
 
+  // Add Bismillah as verse 1 for all Surahs except Surah 9
+  if (surahId !== 9 && surahId !== 1) {
+    combinedAyahs.unshift({
+      number: 0,
+      audio: "",
+      text: "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
+      englishText: "In the name of Allah, the Most Gracious, the Most Merciful.",
+      numberInSurah: 1,
+      juz: 1,
+      manzil: 1,
+      page: 1,
+      ruku: 1,
+      hizbQuarter: 1,
+      sajda: false
+    });
+  }
+
   const surahInfo: Partial<SurahInfo> & { ayahs: Ayah[] } = {
     name: arabicEdition.name,
     englishName: arabicEdition.englishName,
     englishNameTranslation: arabicEdition.englishNameTranslation,
-    numberOfAyahs: arabicEdition.numberOfAyahs,
+    numberOfAyahs: arabicEdition.numberOfAyahs + (surahId !== 9 && surahId !== 1 ? 1 : 0),
     revelationType: arabicEdition.revelationType,
     ayahs: combinedAyahs,
     lugandaName: lugandaSurahNames[surahId - 1] || "",
@@ -145,7 +162,7 @@ const SurahPage = () => {
       <div className="space-y-4">
         {surah?.ayahs.map((ayah) => (
           <AyahListItem
-            key={ayah.number}
+            key={`${id}-${ayah.numberInSurah}`}
             ayah={ayah}
             surahNumber={id}
             displayVerseNumber={ayah.numberInSurah}
