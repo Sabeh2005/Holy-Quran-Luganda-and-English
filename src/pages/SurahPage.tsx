@@ -29,8 +29,8 @@ const fetchSurahDetail = async (surahId: number) => {
   let combinedAyahs: Ayah[] = [];
   let numberOfAyahs = arabicEdition.numberOfAyahs;
 
-  // Add Bismillah as verse 1 ONLY for Surahs that need it (all except 1 and 9)
-  const shouldAddBismillah = surahId !== 1 && surahId !== 9;
+  // Add Bismillah as verse 1 for all Surahs except At-Tawbah (9)
+  const shouldAddBismillah = surahId !== 9;
   
   if (shouldAddBismillah) {
     combinedAyahs.push({
