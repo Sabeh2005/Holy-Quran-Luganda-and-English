@@ -21,7 +21,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 166 77% 30%; /* Custom Green */
+    --primary: 166 77% 30%; /* Green */
     --primary-foreground: 210 40% 98%;
 
     --secondary: 210 40% 96.1%;
@@ -38,21 +38,34 @@
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 166 77% 30%; /* Custom Green */
+    --ring: 166 77% 30%; /* Green */
 
     --radius: 0.5rem;
   }
 
   [data-theme-color="blue"] {
-    --primary: 221.2 83.2% 53.3%; /* Blue */
-    --primary-foreground: 210 40% 98%;
-    --ring: 221.2 83.2% 53.3%; /* Blue */
+    --primary: 221.2 83.2% 53.3%;
+    --ring: 221.2 83.2% 53.3%;
   }
 
   [data-theme-color="purple"] {
-    --primary: 262.1 83.3% 57.8%; /* Purple */
-    --primary-foreground: 210 40% 98%;
-    --ring: 262.1 83.3% 57.8%; /* Purple */
+    --primary: 262.1 83.3% 57.8%;
+    --ring: 262.1 83.3% 57.8%;
+  }
+
+  [data-theme-color="gold"] {
+    --primary: 47.9 95.8% 53.1%;
+    --ring: 47.9 95.8% 53.1%;
+  }
+
+  [data-theme-color="rose"] {
+    --primary: 346.8 77.2% 49.8%;
+    --ring: 346.8 77.2% 49.8%;
+  }
+
+  [data-theme-color="orange"] {
+    --primary: 24.6 95% 53.1%;
+    --ring: 24.6 95% 53.1%;
   }
 
   .dark {
@@ -65,7 +78,7 @@
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 166 70% 40%; /* Custom Green Dark */
+    --primary: 166 70% 40%; /* Green Dark */
     --primary-foreground: 210 40% 98%;
 
     --secondary: 217.2 32.6% 17.5%;
@@ -82,19 +95,32 @@
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 166 70% 40%; /* Custom Green Dark */
+    --ring: 166 70% 40%; /* Green Dark */
   }
 
   .dark[data-theme-color="blue"] {
-    --primary: 217.2 91.2% 59.8%; /* Blue Dark */
-    --primary-foreground: 210 40% 98%;
-    --ring: 217.2 91.2% 59.8%; /* Blue Dark */
+    --primary: 217.2 91.2% 59.8%;
+    --ring: 217.2 91.2% 59.8%;
   }
 
   .dark[data-theme-color="purple"] {
-    --primary: 263.4 95.2% 58.2%; /* Purple Dark */
-    --primary-foreground: 210 40% 98%;
-    --ring: 263.4 95.2% 58.2%; /* Purple Dark */
+    --primary: 263.4 95.2% 58.2%;
+    --ring: 263.4 95.2% 58.2%;
+  }
+
+  .dark[data-theme-color="gold"] {
+    --primary: 47.9 95.8% 53.1%;
+    --ring: 47.9 95.8% 53.1%;
+  }
+
+  .dark[data-theme-color="rose"] {
+    --primary: 346.8 77.2% 49.8%;
+    --ring: 346.8 77.2% 49.8%;
+  }
+
+  .dark[data-theme-color="orange"] {
+    --primary: 24.6 95% 53.1%;
+    --ring: 24.6 95% 53.1%;
   }
 }
 

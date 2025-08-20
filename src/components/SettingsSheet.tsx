@@ -56,10 +56,13 @@ export const SettingsSheet = ({ open, onOpenChange }: SettingsSheetProps) => {
           </div>
           <div className="grid gap-3">
             <Label>Theme Color</Label>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <Button variant={themeColor === 'green' ? 'default' : 'outline'} onClick={() => setThemeColor('green')}>Green</Button>
               <Button variant={themeColor === 'blue' ? 'default' : 'outline'} onClick={() => setThemeColor('blue')}>Blue</Button>
               <Button variant={themeColor === 'purple' ? 'default' : 'outline'} onClick={() => setThemeColor('purple')}>Purple</Button>
+              <Button variant={themeColor === 'gold' ? 'default' : 'outline'} onClick={() => setThemeColor('gold')}>Gold</Button>
+              <Button variant={themeColor === 'rose' ? 'default' : 'outline'} onClick={() => setThemeColor('rose')}>Rose</Button>
+              <Button variant={themeColor === 'orange' ? 'default' : 'outline'} onClick={() => setThemeColor('orange')}>Orange</Button>
             </div>
           </div>
           <div className="grid gap-3">
