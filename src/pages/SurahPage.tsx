@@ -106,28 +106,36 @@ const SurahPage = () => {
   const surahAudioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
-    if (ayahAudioRef.current) {
+    const audio = ayahAudioRef.current;
+    if (audio) {
       if (isAyahPlaying && activeAyah) {
-        if (ayahAudioRef.current.src !== activeAyah.audio) {
-          ayahAudioRef.current.src = activeAyah.audio;
+        if (audio.src !== activeAyah.audio) {
+          audio.src = activeAyah.audio;
         }
-        ayahAudioRef.current.play().catch(e => console.error("Ayah audio play failed", e));
+        audio.play().catch(e => {
+          console.error("Ayah audio play failed", e);
+          setIsAyahPlaying(false);
+        });
       } else {
-        ayahAudioRef.current.pause();
+        audio.pause();
       }
     }
   }, [isAyahPlaying, activeAyah]);
 
   useEffect(() => {
-    if (surahAudioRef.current && misharyAudioLinks) {
+    const audio = surahAudioRef.current;
+    if (audio && misharyAudioLinks) {
       const surahAudioSrc = misharyAudioLinks[id - 1];
       if (isSurahPlaying && surahAudioSrc) {
-        if (surahAudioRef.current.src !== surahAudioSrc) {
-          surahAudioRef.current.src = surahAudioSrc;
+        if (audio.src !== surahAudioSrc) {
+          audio.src = surahAudioSrc;
         }
-        surahAudioRef.current.play().catch(e => console.error("Surah audio play failed", e));
+        audio.play().catch(e => {
+          console.error("Surah audio play failed", e);
+          setIsSurahPlaying(false);
+        });
       } else {
-        surahAudioRef.current.pause();
+        audio.pause();
       }
     }
   }, [isSurahPlaying, id, misharyAudioLinks]);
