@@ -107,43 +107,55 @@ const SurahPage = () => {
   const surahAudioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
-    const audio = ayahAudioRef.current;
-    if (!audio) return;
-
-    if (isAyahPlaying && activeAyah?.audio) {
-      if (audio.src !== activeAyah.audio) {
-        audio.src = activeAyah.audio;
-      }
-      audio.play().catch(e => {
-        console.error("Ayah audio play failed", e);
-        setIsAyahPlaying(false);
-      });
-    } else {
-      audio.pause();
-    }
-  }, [isAyahPlaying, activeAyah]);
-
-  useEffect(() => {
-    const audio = surahAudioRef.current;
+    const surahAudio = surahAudioRef.current;
+    const ayahAudio = ayahAudioRef.current;
     return () => {
-      audio?.pause();
+      surahAudio?.pause();
+      ayahAudio?.pause();
     };
   }, [id]);
 
-  const handlePlayAyah = (ayah: Ayah) => {
+  const handlePlayAyah = async (ayah: Ayah) => {
     if (isSurahPlaying) {
       surahAudioRef.current?.pause();
       setIsSurahPlaying(false);
     }
+
+    const audio = ayahAudioRef.current;
+    if (!audio) return;
+
     if (activeAyah?.number === ayah.number) {
-      setIsAyahPlaying(!isAyahPlaying);
+      if (isAyahPlaying) {
+        audio.pause();
+        setIsAyahPlaying(false);
+      } else {
+        try {
+          await audio.play();
+          setIsAyahPlaying(true);
+        } catch (error) {
+          console.error("Ayah audio play failed", error);
+          showError("Audio playback failed. Your browser might be blocking it.");
+          setIsAyahPlaying(false);
+        }
+      }
     } else {
       setActiveAyah(ayah);
-      setIsAyahPlaying(true);
+      if (audio.src !== ayah.audio) {
+        audio.src = ayah.audio;
+      }
+      try {
+        await audio.play();
+        setIsAyahPlaying(true);
+      } catch (error) {
+        console.error("Ayah audio play failed", error);
+        showError("Audio playback failed. Your browser might be blocking it.");
+        setActiveAyah(null);
+        setIsAyahPlaying(false);
+      }
     }
   };
 
-  const handlePlaySurah = () => {
+  const handlePlaySurah = async () => {
     if (isAyahPlaying) {
       ayahAudioRef.current?.pause();
       setIsAyahPlaying(false);
@@ -159,24 +171,26 @@ const SurahPage = () => {
     if (isSurahPlaying) {
       audio.pause();
       setIsSurahPlaying(false);
-    } else {
-      const surahAudioSrc = misharyAudioLinks[id - 1];
-      if (surahAudioSrc) {
-        if (audio.src !== surahAudioSrc) {
-          audio.src = surahAudioSrc;
-        }
-        audio.play()
-          .then(() => {
-            setIsSurahPlaying(true);
-          })
-          .catch((e) => {
-            console.error("Surah audio play failed", e);
-            showError("Audio playback failed. Your browser might be blocking it.");
-            setIsSurahPlaying(false);
-          });
-      } else {
-        showError("Could not find audio for this Surah.");
-      }
+      return;
+    }
+
+    const surahAudioSrc = misharyAudioLinks[id - 1];
+    if (!surahAudioSrc) {
+      showError("Could not find audio for this Surah.");
+      return;
+    }
+
+    if (audio.src !== surahAudioSrc) {
+      audio.src = surahAudioSrc;
+    }
+
+    try {
+      await audio.play();
+      setIsSurahPlaying(true);
+    } catch (error) {
+      console.error("Surah audio play failed", error);
+      showError("Audio playback failed. Your browser might be blocking it.");
+      setIsSurahPlaying(false);
     }
   };
 
