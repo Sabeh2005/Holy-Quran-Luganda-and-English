@@ -59,15 +59,40 @@ const fetchSurahDetail = async (surahId: number) => {
   // Add the rest of the verses with adjusted numbering
   arabicEdition.ayahs.forEach((ayah: any, index: number) => {
     // For Surah Al-Fatihah, use the existing verse numbering
-    const verseNumber = (surahId === 1 || !shouldAddBismillah) ? 
-      ayah.numberInSurah : 
-      ayah.numberInSurah + 1;
+    let verseNumber = ayah.numberInSurah;
+    let arabicText = ayah.text;
+    let englishText = englishEdition.ayahs[index].text;
+
+    // For other Surahs (except 9), adjust numbering
+    if (surahId !== 1 && surahId !== 9) {
+      verseNumber = ayah.numberInSurah + 1;
+    }
+
+    // For Surah Al-Fatihah, we keep the text as is
+    if (surahId === 1) {
+      combinedAyahs.push({
+        ...ayah,
+        englishText,
+        numberInSurah: verseNumber
+      });
+    } else {
+      // For other Surahs, we need to remove Bismillah from the first verse
+      // since we've already added it separately
+      if (index === 0 && surahId !== 9) {
+        // Remove Bismillah from the beginning of the verse if it exists
+        const bismillah = "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ";
+        if (arabicText.startsWith(bismillah)) {
+          arabicText = arabicText.replace(bismillah, "").trim();
+        }
+      }
       
-    combinedAyahs.push({
-      ...ayah,
-      englishText: englishEdition.ayahs[index].text,
-      numberInSurah: verseNumber
-    });
+      combinedAyahs.push({
+        ...ayah,
+        text: arabicText,
+        englishText,
+        numberInSurah: verseNumber
+      });
+    }
   });
 
   const surahInfo: Partial<SurahInfo> & { ayahs: Ayah[] } = {
