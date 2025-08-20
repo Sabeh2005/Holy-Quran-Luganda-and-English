@@ -29,7 +29,10 @@ const fetchSurahDetail = async (surahId: number) => {
   let combinedAyahs: Ayah[] = [];
   let numberOfAyahs = arabicEdition.numberOfAyahs;
 
-  // Add Bismillah as verse 1 for all Surahs except At-Tawbah (9)
+  // Ahmadi Muslim Quran system:
+  // - Surah 1 (Al-Fatihah): 7 verses (Bismillah is verse 1)
+  // - Surah 9 (At-Tawbah): No Bismillah
+  // - All other Surahs: Bismillah is verse 1, total verses = original + 1
   const shouldAddBismillah = surahId !== 9;
   
   if (shouldAddBismillah) {
