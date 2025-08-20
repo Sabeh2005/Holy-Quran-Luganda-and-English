@@ -133,6 +133,17 @@ const SurahPage = () => {
     }
   };
 
+  const isBaqarah = id === 2;
+
+  const bismillahAyah: Ayah = {
+    number: 1, // Overall verse number in Quran
+    audio: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/1.mp3",
+    text: "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ",
+    englishText: "In the name of Allah, the Entirely Merciful, the Especially Merciful.",
+    numberInSurah: 0, // Using 0 to signify it's not a numbered verse from the API
+    juz: 1, manzil: 1, page: 1, ruku: 1, hizbQuarter: 1, sajda: false,
+  };
+
   return (
     <div className="bg-background rounded-xl p-4 md:p-8 border">
       <div className="flex justify-between items-center mb-8">
@@ -155,7 +166,9 @@ const SurahPage = () => {
         <p className="text-muted-foreground text-lg">{surah?.englishNameTranslation}</p>
         <div className="flex justify-center items-center gap-4 mt-4 text-muted-foreground">
           <Badge variant="secondary">Surah {id}</Badge>
-          <Badge variant="secondary">{surah?.numberOfAyahs} verses</Badge>
+          <Badge variant="secondary">
+            {isBaqarah ? (surah?.numberOfAyahs ?? 0) + 1 : surah?.numberOfAyahs} verses
+          </Badge>
           <Badge variant="secondary" className="capitalize">{surah?.revelationType}</Badge>
         </div>
         <Button className="mt-6">
@@ -163,11 +176,24 @@ const SurahPage = () => {
         </Button>
       </div>
       <div className="space-y-4">
+        {isBaqarah && (
+          <AyahListItem
+            key="bismillah"
+            ayah={bismillahAyah}
+            surahNumber={id}
+            displayVerseNumber={1}
+            isPlaying={isPlaying && activeAyah?.number === bismillahAyah.number}
+            onPlay={() => handlePlayAyah(bismillahAyah)}
+            lugandaTranslation={lugandaTranslation}
+            isBismillah={true}
+          />
+        )}
         {surah?.ayahs.map((ayah) => (
           <AyahListItem
             key={ayah.number}
             ayah={ayah}
             surahNumber={id}
+            displayVerseNumber={isBaqarah ? ayah.numberInSurah + 1 : ayah.numberInSurah}
             isPlaying={isPlaying && activeAyah?.number === ayah.number}
             onPlay={() => handlePlayAyah(ayah)}
             lugandaTranslation={lugandaTranslation}

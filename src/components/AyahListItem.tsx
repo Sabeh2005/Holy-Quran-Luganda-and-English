@@ -11,25 +11,35 @@ type LugandaTranslationData = Record<number, Record<number, string>> | undefined
 interface AyahListItemProps {
   ayah: Ayah;
   surahNumber: number;
+  displayVerseNumber: number;
   isPlaying: boolean;
   onPlay: () => void;
   lugandaTranslation: LugandaTranslationData;
+  isBismillah?: boolean;
 }
 
-const AyahListItem = ({ ayah, surahNumber, isPlaying, onPlay, lugandaTranslation }: AyahListItemProps) => {
+const AyahListItem = ({ ayah, surahNumber, displayVerseNumber, isPlaying, onPlay, lugandaTranslation, isBismillah = false }: AyahListItemProps) => {
   const { toast } = useToast();
 
   const handleCopy = () => {
-    const lugandaText = lugandaTranslation?.[surahNumber]?.[ayah.numberInSurah] || "[Luganda translation not available]";
-    const textToCopy = `${ayah.text}\n\n${ayah.englishText}\n\n${lugandaText}\n\n- Surah ${surahNumber}, Verse ${ayah.numberInSurah}`;
+    const lugandaText = !isBismillah 
+      ? (lugandaTranslation?.[surahNumber]?.[ayah.numberInSurah] || "[Luganda translation not available]") 
+      : "";
+      
+    const textToCopy = `${ayah.text}\n\n${ayah.englishText}${lugandaText ? `\n\n${lugandaText}` : ''}\n\n- Surah ${surahNumber}, Verse ${displayVerseNumber}`;
+    
     navigator.clipboard.writeText(textToCopy);
     toast({
       title: "Copied to clipboard!",
-      description: `Verse ${ayah.numberInSurah} has been copied.`,
+      description: `Verse ${displayVerseNumber} has been copied.`,
     });
   };
 
   const renderLugandaContent = () => {
+    if (isBismillah) {
+      return <p className="text-muted-foreground italic">[This is an invocation, not part of the numbered verses of the Surah text itself.]</p>;
+    }
+
     if (lugandaTranslation === undefined) {
       return <Skeleton className="h-6 w-full" />;
     }
@@ -49,9 +59,9 @@ const AyahListItem = ({ ayah, surahNumber, isPlaying, onPlay, lugandaTranslation
         <div className="flex justify-between items-center text-sm text-primary">
           <div className="flex items-center gap-2">
             <div className="bg-primary/10 text-primary rounded-full w-8 h-8 flex items-center justify-center font-bold text-xs">
-              {ayah.numberInSurah}
+              {displayVerseNumber}
             </div>
-            <span>Surah {surahNumber}, Verse {ayah.numberInSurah}</span>
+            <span>Surah {surahNumber}, Verse {displayVerseNumber}</span>
           </div>
           <div className="flex items-center gap-1">
             <Button onClick={onPlay} variant="ghost" size="icon">
