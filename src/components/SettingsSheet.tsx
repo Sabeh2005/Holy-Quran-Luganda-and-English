@@ -34,12 +34,16 @@ export const SettingsSheet = ({ open, onOpenChange }: SettingsSheetProps) => {
     { name: "Default", value: "" },
     { name: "Gold", value: "#c59b43" },
     { name: "Green", value: "#4f7942" },
+    { name: "Blue", value: "#003366" },
+    { name: "Maroon", value: "#800000" },
   ];
 
   const translationColors = [
     { name: "Default", value: "" },
     { name: "Slate", value: "#708090" },
     { name: "Blue", value: "#4682B4" },
+    { name: "Dark Gray", value: "#5A5A5A" },
+    { name: "Brown", value: "#8B4513" },
   ];
 
   return (
@@ -107,7 +111,7 @@ export const SettingsSheet = ({ open, onOpenChange }: SettingsSheetProps) => {
               <SelectContent>
                 <SelectItem value="en-US">English</SelectItem>
                 <SelectItem value="ar-SA">Arabic (العربية)</SelectItem>
-                <SelectItem value="lg-UG">Luganda</SelectItem>
+                <SelectItem value: "lg-UG">Luganda</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
