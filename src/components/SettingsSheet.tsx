@@ -111,7 +111,7 @@ export const SettingsSheet = ({ open, onOpenChange }: SettingsSheetProps) => {
               <SelectContent>
                 <SelectItem value="en-US">English</SelectItem>
                 <SelectItem value="ar-SA">Arabic (العربية)</SelectItem>
-                <SelectItem value: "lg-UG">Luganda</SelectItem>
+                <SelectItem value="lg-UG">Luganda</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
