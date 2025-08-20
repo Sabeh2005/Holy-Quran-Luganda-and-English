@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 
-type ThemeColor = "green" | "blue" | "purple" | "gold" | "rose" | "orange";
+type ThemeColor = "green" | "blue" | "purple" | "gold" | "rose" | "orange" | "brown";
 type VoiceLanguage = "en-US" | "ar-SA" | "lg-UG";
 
 interface Settings {

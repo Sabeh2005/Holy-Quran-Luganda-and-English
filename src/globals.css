@@ -68,6 +68,11 @@
     --ring: 24.6 95% 53.1%;
   }
 
+  [data-theme-color="brown"] {
+    --primary: 25 55% 45%;
+    --ring: 25 55% 45%;
+  }
+
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
@@ -121,6 +126,11 @@
   .dark[data-theme-color="orange"] {
     --primary: 24.6 95% 53.1%;
     --ring: 24.6 95% 53.1%;
+  }
+
+  .dark[data-theme-color="brown"] {
+    --primary: 25 50% 55%;
+    --ring: 25 50% 55%;
   }
 }
 

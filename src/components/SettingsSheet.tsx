@@ -63,6 +63,7 @@ export const SettingsSheet = ({ open, onOpenChange }: SettingsSheetProps) => {
               <Button variant={themeColor === 'gold' ? 'default' : 'outline'} onClick={() => setThemeColor('gold')}>Gold</Button>
               <Button variant={themeColor === 'rose' ? 'default' : 'outline'} onClick={() => setThemeColor('rose')}>Rose</Button>
               <Button variant={themeColor === 'orange' ? 'default' : 'outline'} onClick={() => setThemeColor('orange')}>Orange</Button>
+              <Button variant={themeColor === 'brown' ? 'default' : 'outline'} onClick={() => setThemeColor('brown')}>Brown</Button>
             </div>
           </div>
           <div className="grid gap-3">
