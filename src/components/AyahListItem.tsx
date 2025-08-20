@@ -20,33 +20,8 @@ interface AyahListItemProps {
 const AyahListItem = ({ ayah, surahNumber, displayVerseNumber, isPlaying, onPlay, lugandaTranslation }: AyahListItemProps) => {
   const { toast } = useToast();
 
-  // Adjust verse number for Luganda translation lookup
-  const getLugandaVerseNumber = () => {
-    // For Surahs where we added Bismillah (all except 1 and 9), adjust verse numbers
-    if (surahNumber !== 1 && surahNumber !== 9) {
-      // Bismillah is verse 1 - use hardcoded translation
-      if (displayVerseNumber === 1) {
-        return "Mu linnya lya Katonda, Omusaasizi, Ow'ekisa ekingi";
-      }
-      // Other verses need -1 adjustment
-      return displayVerseNumber - 1;
-    }
-    return displayVerseNumber;
-  };
-
-  const lugandaVerseNumber = getLugandaVerseNumber();
-  
   const handleCopy = () => {
-    let lugandaText = "";
-    
-    if (typeof lugandaVerseNumber === "string") {
-      // Hardcoded Bismillah translation
-      lugandaText = lugandaVerseNumber;
-    } else {
-      // Lookup translation from data
-      lugandaText = lugandaTranslation?.[surahNumber]?.[lugandaVerseNumber] || "[Luganda translation not available]";
-    }
-    
+    const lugandaText = lugandaTranslation?.[surahNumber]?.[ayah.numberInSurah] || "[Luganda translation not available]";
     const textToCopy = `${ayah.text}\n\n${ayah.englishText}\n\n${lugandaText}\n\n- Surah ${surahNumber}, Verse ${displayVerseNumber}`;
     
     navigator.clipboard.writeText(textToCopy);
@@ -61,15 +36,7 @@ const AyahListItem = ({ ayah, surahNumber, displayVerseNumber, isPlaying, onPlay
       return <Skeleton className="h-6 w-full" />;
     }
     
-    let translation = "";
-    
-    if (typeof lugandaVerseNumber === "string") {
-      // Hardcoded Bismillah translation
-      translation = lugandaVerseNumber;
-    } else {
-      // Lookup translation from data
-      translation = lugandaTranslation?.[surahNumber]?.[lugandaVerseNumber] || "";
-    }
+    const translation = lugandaTranslation?.[surahNumber]?.[ayah.numberInSurah];
     
     if (translation) {
       return <p className="text-muted-foreground">{translation}</p>;

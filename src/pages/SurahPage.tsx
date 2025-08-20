@@ -29,8 +29,8 @@ const fetchSurahDetail = async (surahId: number) => {
   let combinedAyahs: Ayah[] = [];
   let numberOfAyahs = arabicEdition.numberOfAyahs;
 
-  // Add Bismillah as verse 1 only for Surahs that need it (all except 1 and 9)
-  if (surahId !== 9 && surahId !== 1) {
+  // Add Bismillah as verse 1 for all Surahs except Surah 9
+  if (surahId !== 9) {
     combinedAyahs.push({
       number: 0,
       audio: "",
@@ -49,13 +49,10 @@ const fetchSurahDetail = async (surahId: number) => {
 
   // Add the rest of the verses with adjusted numbering
   arabicEdition.ayahs.forEach((ayah: any, index: number) => {
-    // For Surahs where we added Bismillah, adjust verse numbers
-    const adjustedNumber = (surahId !== 9 && surahId !== 1) ? ayah.numberInSurah + 1 : ayah.numberInSurah;
-    
     combinedAyahs.push({
       ...ayah,
       englishText: englishEdition.ayahs[index].text,
-      numberInSurah: adjustedNumber
+      numberInSurah: surahId !== 9 ? ayah.numberInSurah + 1 : ayah.numberInSurah
     });
   });
 
