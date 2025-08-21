@@ -115,47 +115,51 @@ const SurahPage = () => {
     };
   }, [id]);
 
-  const handlePlayAyah = async (ayah: Ayah) => {
+  const handleAudioError = (error: any, type: 'Ayah' | 'Surah') => {
+    console.error(`${type} audio playback failed`, error);
+    showError("Audio playback failed. Your browser might be blocking it.");
+    if (type === 'Ayah') {
+      setActiveAyah(null);
+      setIsAyahPlaying(false);
+    } else {
+      setIsSurahPlaying(false);
+    }
+  };
+
+  const handlePlayAyah = (ayah: Ayah) => {
+    const audio = ayahAudioRef.current;
+    if (!audio) return;
+
     if (isSurahPlaying) {
       surahAudioRef.current?.pause();
       setIsSurahPlaying(false);
     }
-
-    const audio = ayahAudioRef.current;
-    if (!audio) return;
 
     if (activeAyah?.number === ayah.number) {
       if (isAyahPlaying) {
         audio.pause();
         setIsAyahPlaying(false);
       } else {
-        try {
-          await audio.play();
-          setIsAyahPlaying(true);
-        } catch (error) {
-          console.error("Ayah audio play failed", error);
-          showError("Audio playback failed. Your browser might be blocking it.");
-          setIsAyahPlaying(false);
-        }
-      }
-    } else {
-      setActiveAyah(ayah);
-      if (audio.src !== ayah.audio) {
-        audio.src = ayah.audio;
-      }
-      try {
-        await audio.play();
+        audio.play().catch(e => handleAudioError(e, 'Ayah'));
         setIsAyahPlaying(true);
-      } catch (error) {
-        console.error("Ayah audio play failed", error);
-        showError("Audio playback failed. Your browser might be blocking it.");
-        setActiveAyah(null);
-        setIsAyahPlaying(false);
       }
+      return;
+    }
+
+    audio.src = ayah.audio;
+    const playPromise = audio.play();
+
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          setActiveAyah(ayah);
+          setIsAyahPlaying(true);
+        })
+        .catch(e => handleAudioError(e, 'Ayah'));
     }
   };
 
-  const handlePlaySurah = async () => {
+  const handlePlaySurah = () => {
     if (isAyahPlaying) {
       ayahAudioRef.current?.pause();
       setIsAyahPlaying(false);
@@ -184,13 +188,13 @@ const SurahPage = () => {
       audio.src = surahAudioSrc;
     }
 
-    try {
-      await audio.play();
-      setIsSurahPlaying(true);
-    } catch (error) {
-      console.error("Surah audio play failed", error);
-      showError("Audio playback failed. Your browser might be blocking it.");
-      setIsSurahPlaying(false);
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          setIsSurahPlaying(true);
+        })
+        .catch(e => handleAudioError(e, 'Surah'));
     }
   };
 
