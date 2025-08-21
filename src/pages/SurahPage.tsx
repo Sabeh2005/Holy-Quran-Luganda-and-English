@@ -91,6 +91,8 @@ const SurahPage = () => {
   const navigate = useNavigate();
   const id = Number(surahId);
 
+  const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
+
   const { data: surah, isLoading: isSurahLoading, error: surahError } = useQuery({
     queryKey: ["surah", id],
     queryFn: () => fetchSurahDetail(id),
@@ -103,98 +105,78 @@ const SurahPage = () => {
   const [activeAyah, setActiveAyah] = useState<Ayah | null>(null);
   const [isAyahPlaying, setIsAyahPlaying] = useState(false);
   const [isSurahPlaying, setIsSurahPlaying] = useState(false);
-  const ayahAudioRef = useRef<HTMLAudioElement>(null);
-  const surahAudioRef = useRef<HTMLAudioElement>(null);
+
+  const stopCurrentAudio = () => {
+    if (audioPlayerRef.current) {
+      audioPlayerRef.current.pause();
+      audioPlayerRef.current.removeAttribute('src');
+      audioPlayerRef.current = null;
+    }
+    setIsAyahPlaying(false);
+    setIsSurahPlaying(false);
+    setActiveAyah(null);
+  };
 
   useEffect(() => {
-    const surahAudio = surahAudioRef.current;
-    const ayahAudio = ayahAudioRef.current;
     return () => {
-      surahAudio?.pause();
-      ayahAudio?.pause();
+      stopCurrentAudio();
     };
   }, [id]);
 
-  const handleAudioError = (error: any, type: 'Ayah' | 'Surah') => {
-    console.error(`${type} audio playback failed`, error);
-    showError("Audio playback failed. Your browser might be blocking it.");
-    if (type === 'Ayah') {
-      setActiveAyah(null);
-      setIsAyahPlaying(false);
-    } else {
-      setIsSurahPlaying(false);
-    }
+  const playAudio = (src: string, onPlay: () => void, onEnd: () => void) => {
+    stopCurrentAudio();
+    const newAudio = new Audio(src);
+    audioPlayerRef.current = newAudio;
+    
+    newAudio.play()
+      .then(() => {
+        onPlay();
+      })
+      .catch(err => {
+        console.error("Audio playback error:", err);
+        showError("Audio playback failed. Your browser might be blocking it.");
+        stopCurrentAudio();
+      });
+
+    newAudio.onended = onEnd;
   };
 
   const handlePlayAyah = (ayah: Ayah) => {
-    const audio = ayahAudioRef.current;
-    if (!audio) return;
-
-    if (isSurahPlaying) {
-      surahAudioRef.current?.pause();
-      setIsSurahPlaying(false);
-    }
-
-    if (activeAyah?.number === ayah.number) {
-      if (isAyahPlaying) {
-        audio.pause();
-        setIsAyahPlaying(false);
-      } else {
-        audio.play().catch(e => handleAudioError(e, 'Ayah'));
-        setIsAyahPlaying(true);
-      }
-      return;
-    }
-
-    audio.src = ayah.audio;
-    const playPromise = audio.play();
-
-    if (playPromise !== undefined) {
-      playPromise
-        .then(() => {
+    if (isAyahPlaying && activeAyah?.number === ayah.number) {
+      stopCurrentAudio();
+    } else {
+      playAudio(
+        ayah.audio,
+        () => {
           setActiveAyah(ayah);
           setIsAyahPlaying(true);
-        })
-        .catch(e => handleAudioError(e, 'Ayah'));
+        },
+        () => {
+          setIsAyahPlaying(false);
+          setActiveAyah(null);
+        }
+      );
     }
   };
 
   const handlePlaySurah = () => {
-    if (isAyahPlaying) {
-      ayahAudioRef.current?.pause();
-      setIsAyahPlaying(false);
-      setActiveAyah(null);
-    }
-
-    const audio = surahAudioRef.current;
-    if (!audio || !misharyAudioLinks) {
-      showError("Audio data is not loaded yet.");
-      return;
-    }
-
     if (isSurahPlaying) {
-      audio.pause();
-      setIsSurahPlaying(false);
-      return;
-    }
-
-    const surahAudioSrc = misharyAudioLinks[id - 1];
-    if (!surahAudioSrc) {
-      showError("Could not find audio for this Surah.");
-      return;
-    }
-
-    if (audio.src !== surahAudioSrc) {
-      audio.src = surahAudioSrc;
-    }
-
-    const playPromise = audio.play();
-    if (playPromise !== undefined) {
-      playPromise
-        .then(() => {
-          setIsSurahPlaying(true);
-        })
-        .catch(e => handleAudioError(e, 'Surah'));
+      stopCurrentAudio();
+    } else {
+      if (!misharyAudioLinks) {
+        showError("Audio data is not loaded yet.");
+        return;
+      }
+      const surahAudioSrc = misharyAudioLinks[id - 1];
+      if (!surahAudioSrc) {
+        showError("Could not find audio for this Surah.");
+        return;
+      }
+      playAudio(
+        surahAudioSrc,
+        () => setIsSurahPlaying(true),
+        () => setIsSurahPlaying(false)
+      );
     }
   };
 
@@ -272,8 +254,6 @@ const SurahPage = () => {
           />
         ))}
       </div>
-      <audio ref={ayahAudioRef} onEnded={() => setIsAyahPlaying(false)} />
-      <audio ref={surahAudioRef} onEnded={() => setIsSurahPlaying(false)} />
     </div>
   );
 };
