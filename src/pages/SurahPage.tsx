@@ -11,7 +11,15 @@ import { lugandaSurahNames } from "@/data/lugandaSurahNames";
 import { useLugandaTranslation } from "@/hooks/useLugandaTranslation";
 import { useMisharyAudio } from "@/hooks/useMisharyAudio";
 import { showError } from "@/utils/toast";
-import { Card, CardContent } from "@/components/ui/card";
+
+const BISMILLAH_AYAH: Ayah = {
+  number: 0, // Placeholder global number
+  audio: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/1.mp3",
+  text: "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ",
+  englishText: "In the name of Allah, the Entirely Merciful, the Especially Merciful.",
+  numberInSurah: 1,
+  juz: 0, manzil: 0, page: 0, ruku: 0, hizbQuarter: 0, sajda: false,
+};
 
 const fetchSurahDetail = async (surahId: number) => {
   const [arabicRes, englishRes] = await Promise.all([
@@ -34,27 +42,30 @@ const fetchSurahDetail = async (surahId: number) => {
     englishText: englishEdition.ayahs[index].text,
   }));
 
+  let finalAyahs = combinedAyahs;
+  let finalNumberOfAyahs = arabicEdition.numberOfAyahs;
+
+  // For all surahs except Al-Fatihah (1) and At-Tawbah (9), prepend Bismillah and re-number
+  if (surahId !== 1 && surahId !== 9) {
+    const shiftedAyahs = combinedAyahs.map(ayah => ({
+      ...ayah,
+      numberInSurah: ayah.numberInSurah + 1,
+    }));
+    finalAyahs = [BISMILLAH_AYAH, ...shiftedAyahs];
+    finalNumberOfAyahs += 1;
+  }
+
   const surahInfo: Partial<SurahInfo> & { ayahs: Ayah[] } = {
     name: arabicEdition.name,
     englishName: arabicEdition.englishName,
     englishNameTranslation: arabicEdition.englishNameTranslation,
-    numberOfAyahs: arabicEdition.numberOfAyahs,
+    numberOfAyahs: finalNumberOfAyahs,
     revelationType: arabicEdition.revelationType,
-    ayahs: combinedAyahs,
+    ayahs: finalAyahs,
     lugandaName: lugandaSurahNames[surahId - 1] || "",
   };
   return surahInfo;
 };
-
-const BismillahDisplay = () => (
-  <Card className="mb-6 bg-muted/20 border-dashed">
-    <CardContent className="p-4">
-      <p className="font-arabic text-center text-2xl text-primary">
-        بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
-      </p>
-    </CardContent>
-  </Card>
-);
 
 const SurahPage = () => {
   const { surahId } = useParams<{ surahId: string }>();
@@ -112,7 +123,7 @@ const SurahPage = () => {
   };
 
   const handlePlayAyah = (ayah: Ayah) => {
-    if (isAyahPlaying && activeAyah?.number === ayah.number) {
+    if (isAyahPlaying && activeAyah?.number === ayah.number && activeAyah?.numberInSurah === ayah.numberInSurah) {
       stopCurrentAudio();
     } else {
       playAudio(
@@ -181,8 +192,6 @@ const SurahPage = () => {
     }
   };
 
-  const showBismillah = id !== 1 && id !== 9;
-
   return (
     <div className="bg-background rounded-xl p-4 md:p-8 border">
       <div className="flex justify-between items-center mb-8">
@@ -214,16 +223,14 @@ const SurahPage = () => {
         </Button>
       </div>
       
-      {showBismillah && <BismillahDisplay />}
-
       <div className="space-y-4">
         {surah?.ayahs.map((ayah) => (
           <AyahListItem
-            key={ayah.number}
+            key={`${ayah.number}-${ayah.numberInSurah}`}
             ayah={ayah}
             surahNumber={id}
-            displayVerseNumber={id === 2 ? ayah.numberInSurah + 1 : ayah.numberInSurah}
-            isPlaying={isAyahPlaying && activeAyah?.number === ayah.number}
+            displayVerseNumber={ayah.numberInSurah}
+            isPlaying={isAyahPlaying && activeAyah?.number === ayah.number && activeAyah?.numberInSurah === ayah.numberInSurah}
             onPlay={() => handlePlayAyah(ayah)}
             lugandaTranslation={lugandaTranslation}
           />
