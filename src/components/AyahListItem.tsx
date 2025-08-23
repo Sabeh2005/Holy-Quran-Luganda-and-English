@@ -26,22 +26,11 @@ const AyahListItem = ({ ayah, surahNumber, displayVerseNumber, isPlaying, onPlay
   const { arabicFontSize, translationFontSize, arabicFontColor, translationFontColor } = useSettings();
   const { getHighlightColor, addHighlight, removeHighlight } = useHighlight();
 
-  const highlightColor = getHighlightColor(surahNumber, ayah.numberInSurah);
-
-  const getLugandaTextForCopy = (): string => {
-    const isBismillahInjected = surahNumber !== 1 && surahNumber !== 9;
-
-    if (isBismillahInjected && displayVerseNumber === 1) {
-      return "Bisimillahi Rahmani Rahimi.";
-    }
-
-    const translationVerseNumber = isBismillahInjected ? displayVerseNumber - 1 : displayVerseNumber;
-    return lugandaTranslation?.[surahNumber]?.[translationVerseNumber] || "[Luganda translation not available]";
-  };
+  const highlightColor = getHighlightColor(surahNumber, displayVerseNumber);
+  const lugandaText = lugandaTranslation?.[surahNumber]?.[displayVerseNumber];
 
   const handleCopy = () => {
-    const lugandaText = getLugandaTextForCopy();
-    const textToCopy = `${ayah.text}\n\n${ayah.englishText}\n\n${lugandaText}\n\n- Surah ${surahNumber}, Verse ${displayVerseNumber}`;
+    const textToCopy = `${ayah.text}\n\n${ayah.englishText}\n\n${lugandaText || "[Luganda translation not available]"}\n\n- Surah ${surahNumber}, Verse ${displayVerseNumber}`;
     
     navigator.clipboard.writeText(textToCopy);
     toast({
@@ -55,18 +44,8 @@ const AyahListItem = ({ ayah, surahNumber, displayVerseNumber, isPlaying, onPlay
       return <Skeleton className="h-6 w-full" />;
     }
     
-    const isBismillahInjected = surahNumber !== 1 && surahNumber !== 9;
-    let translation: string | undefined;
-
-    if (isBismillahInjected && displayVerseNumber === 1) {
-      translation = "Bisimillahi Rahmani Rahimi.";
-    } else {
-      const translationVerseNumber = isBismillahInjected ? displayVerseNumber - 1 : displayVerseNumber;
-      translation = lugandaTranslation?.[surahNumber]?.[translationVerseNumber];
-    }
-    
-    if (translation) {
-      return <p className="text-muted-foreground" style={{ fontSize: `${translationFontSize}px`, color: translationFontColor || undefined }}>{translation}</p>;
+    if (lugandaText) {
+      return <p className="text-muted-foreground" style={{ fontSize: `${translationFontSize}px`, color: translationFontColor || undefined }}>{lugandaText}</p>;
     }
     
     return <p className="text-muted-foreground italic" style={{ fontSize: `${translationFontSize}px`, color: translationFontColor || undefined }}>[Luganda translation not available for this verse]</p>;
@@ -97,8 +76,8 @@ const AyahListItem = ({ ayah, surahNumber, displayVerseNumber, isPlaying, onPlay
               </PopoverTrigger>
               <PopoverContent className="w-auto">
                 <HighlightPopover 
-                  onColorSelect={(color) => addHighlight(surahNumber, ayah.numberInSurah, color)}
-                  onRemove={() => removeHighlight(surahNumber, ayah.numberInSurah)}
+                  onColorSelect={(color) => addHighlight(surahNumber, displayVerseNumber, color)}
+                  onRemove={() => removeHighlight(surahNumber, displayVerseNumber)}
                   currentColor={highlightColor}
                 />
               </PopoverContent>

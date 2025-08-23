@@ -11,6 +11,7 @@ import { lugandaSurahNames } from "@/data/lugandaSurahNames";
 import { useLugandaTranslation } from "@/hooks/useLugandaTranslation";
 import { useMisharyAudio } from "@/hooks/useMisharyAudio";
 import { showError } from "@/utils/toast";
+import { Card, CardContent } from "@/components/ui/card";
 
 const fetchSurahDetail = async (surahId: number) => {
   const [arabicRes, englishRes] = await Promise.all([
@@ -28,63 +29,32 @@ const fetchSurahDetail = async (surahId: number) => {
   const arabicEdition = arabicData.data;
   const englishEdition = englishData.data;
 
-  let combinedAyahs: Ayah[] = [];
-  let numberOfAyahs = arabicEdition.numberOfAyahs;
-
-  if (surahId === 1 || surahId === 9) {
-    combinedAyahs = arabicEdition.ayahs.map((ayah: any, index: number) => ({
-      ...ayah,
-      englishText: englishEdition.ayahs[index].text,
-    }));
-  } else {
-    numberOfAyahs += 1; 
-
-    const firstApiAyah = arabicEdition.ayahs[0];
-    const firstApiEnglishAyah = englishEdition.ayahs[0];
-    
-    const bismillahText = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ";
-    const bismillahRegex = new RegExp(`^${bismillahText}\\s*`);
-
-    combinedAyahs.push({
-      ...firstApiAyah,
-      number: firstApiAyah.number - 1,
-      audio: "",
-      text: bismillahText,
-      englishText: "In the name of Allah, the Gracious, the Merciful.",
-      numberInSurah: 1,
-      sajda: false,
-    });
-
-    const actualFirstVerseText = firstApiAyah.text.replace(bismillahRegex, "").trim();
-    combinedAyahs.push({
-      ...firstApiAyah,
-      text: actualFirstVerseText,
-      englishText: firstApiEnglishAyah.text,
-      numberInSurah: 2,
-    });
-
-    for (let i = 1; i < arabicEdition.ayahs.length; i++) {
-      const originalAyah = arabicEdition.ayahs[i];
-      const englishAyah = englishEdition.ayahs[i];
-      combinedAyahs.push({
-        ...originalAyah,
-        englishText: englishAyah.text,
-        numberInSurah: originalAyah.numberInSurah + 1,
-      });
-    }
-  }
+  const combinedAyahs: Ayah[] = arabicEdition.ayahs.map((ayah: any, index: number) => ({
+    ...ayah,
+    englishText: englishEdition.ayahs[index].text,
+  }));
 
   const surahInfo: Partial<SurahInfo> & { ayahs: Ayah[] } = {
     name: arabicEdition.name,
     englishName: arabicEdition.englishName,
     englishNameTranslation: arabicEdition.englishNameTranslation,
-    numberOfAyahs,
+    numberOfAyahs: arabicEdition.numberOfAyahs,
     revelationType: arabicEdition.revelationType,
     ayahs: combinedAyahs,
     lugandaName: lugandaSurahNames[surahId - 1] || "",
   };
   return surahInfo;
 };
+
+const BismillahDisplay = () => (
+  <Card className="mb-6 bg-muted/20 border-dashed">
+    <CardContent className="p-4">
+      <p className="font-arabic text-center text-2xl text-primary">
+        بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
+      </p>
+    </CardContent>
+  </Card>
+);
 
 const SurahPage = () => {
   const { surahId } = useParams<{ surahId: string }>();
@@ -211,6 +181,8 @@ const SurahPage = () => {
     }
   };
 
+  const showBismillah = id !== 1 && id !== 9;
+
   return (
     <div className="bg-background rounded-xl p-4 md:p-8 border">
       <div className="flex justify-between items-center mb-8">
@@ -241,10 +213,13 @@ const SurahPage = () => {
           {isSurahPlaying ? 'Pause Surah' : 'Play Surah'}
         </Button>
       </div>
+      
+      {showBismillah && <BismillahDisplay />}
+
       <div className="space-y-4">
         {surah?.ayahs.map((ayah) => (
           <AyahListItem
-            key={`${id}-${ayah.numberInSurah}`}
+            key={ayah.number}
             ayah={ayah}
             surahNumber={id}
             displayVerseNumber={ayah.numberInSurah}
