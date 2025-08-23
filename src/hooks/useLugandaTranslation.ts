@@ -19,35 +19,30 @@ const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
   const lines = text.split('\n');
   
   let currentSurah: number | null = null;
-  let lastAyahInSurah: number | null = null;
 
   for (const line of lines) {
     const trimmedLine = line.trim();
-    if (!trimmedLine) continue;
-    if (/^-+$/.test(trimmedLine)) continue;
+    if (!trimmedLine || trimmedLine.startsWith('###')) continue;
 
-    const surahMatch = trimmedLine.match(/^Essuula (\d+):/i);
+    // Match "Surah 1: ..." or "**Surah 2: ..."
+    const surahMatch = trimmedLine.match(/(?:\*\*)*\s*Surah (\d+):/i);
     if (surahMatch) {
       currentSurah = parseInt(surahMatch[1], 10);
       if (!translation[currentSurah]) {
         translation[currentSurah] = {};
       }
-      lastAyahInSurah = null;
       continue;
     }
 
-    if (!currentSurah) continue;
-
-    const ayahMatch = trimmedLine.match(/^(\d+)\.\s*(.*)/);
-    if (ayahMatch) {
-      const ayahNum = parseInt(ayahMatch[1], 10);
-      const ayahText = ayahMatch[2].trim();
-      lastAyahInSurah = ayahNum;
-      // Initialize or append, just in case of duplicate verse numbers in file
-      translation[currentSurah][ayahNum] = (translation[currentSurah][ayahNum] || '') + ayahText;
-    } else if (lastAyahInSurah) {
-      // This is a continuation line for the last seen verse
-      translation[currentSurah][lastAyahInSurah] += ' ' + trimmedLine;
+    if (currentSurah) {
+      // Match "Ayah 1: ..."
+      const ayahMatch = trimmedLine.match(/^Ayah (\d+):\s*(.*)/i);
+      if (ayahMatch) {
+        const ayahNum = parseInt(ayahMatch[1], 10);
+        const ayahText = ayahMatch[2].trim();
+        
+        translation[currentSurah][ayahNum] = ayahText;
+      }
     }
   }
 
