@@ -17,11 +17,9 @@ const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
   
   const translation: LugandaTranslation = {};
 
-  // Split the entire text by "Surah X:" markers. The capturing group keeps the surah number.
+  // Split the entire text by "Surah X:" markers.
   const surahsText = text.split(/Surah (\d+):/i);
 
-  // We start at index 1 because the first element of the split array is the text before the first "Surah" marker.
-  // We increment by 2 to process pairs of [surahNumber, surahContent].
   for (let i = 1; i < surahsText.length; i += 2) {
     const surahNumber = parseInt(surahsText[i], 10);
     const surahContent = surahsText[i + 1];
@@ -33,18 +31,32 @@ const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
     // Split the content of one surah by "Ayah Y:" markers.
     const ayahsText = surahContent.split(/Ayah (\d+):/i);
     
-    // Similar logic, process pairs of [ayahNumber, ayahContent].
+    // This is the critical fix: handle text that appears *before* the first "Ayah" marker.
+    // My previous parser ignored this, causing all subsequent verses to be misaligned.
+    if (ayahsText.length > 1 && ayahsText[0].trim()) {
+        const firstAyahNum = parseInt(ayahsText[1], 10);
+        const initialContent = ayahsText[0].replace(/\*\*/g, '').replace(/\r?\n/g, ' ').trim();
+        if (initialContent) {
+            translation[surahNumber][firstAyahNum] = initialContent;
+        }
+    }
+    
+    // Process the rest of the ayahs
     for (let j = 1; j < ayahsText.length; j += 2) {
         const ayahNumber = parseInt(ayahsText[j], 10);
         const ayahContent = ayahsText[j + 1];
         
         if (!ayahNumber || !ayahContent) continue;
         
-        // Clean the text: remove asterisks, replace newlines with spaces, and trim whitespace.
         const cleanedContent = ayahContent.replace(/\*\*/g, '').replace(/\r?\n/g, ' ').trim();
         
         if (cleanedContent) {
-          translation[surahNumber][ayahNumber] = cleanedContent;
+          if (translation[surahNumber][ayahNumber]) {
+            // Append content if initial text was already added
+            translation[surahNumber][ayahNumber] += ' ' + cleanedContent;
+          } else {
+            translation[surahNumber][ayahNumber] = cleanedContent;
+          }
         }
     }
   }
@@ -60,7 +72,7 @@ const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
 
 export const useLugandaTranslation = () => {
   return useQuery<LugandaTranslation>({
-    queryKey: ["lugandaTranslation_v12_new_parser"],
+    queryKey: ["lugandaTranslation_v13_alignment_fix"],
     queryFn: fetchAndParseTranslation,
     staleTime: Infinity, 
     gcTime: Infinity,
