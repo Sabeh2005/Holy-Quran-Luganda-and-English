@@ -19,30 +19,35 @@ const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
   const lines = text.split('\n');
   
   let currentSurah: number | null = null;
+  let lastAyahInSurah: number | null = null;
 
   for (const line of lines) {
     const trimmedLine = line.trim();
-    if (!trimmedLine || trimmedLine.startsWith('###')) continue;
+    if (!trimmedLine || /^-+$/.test(trimmedLine)) continue;
 
-    // Match "Surah 1: ..." or "**Surah 2: ..."
-    const surahMatch = trimmedLine.match(/(?:\*\*)*\s*Surah (\d+):/i);
+    // Match "Essuula 1:"
+    const surahMatch = trimmedLine.match(/^Essuula (\d+):/i);
     if (surahMatch) {
       currentSurah = parseInt(surahMatch[1], 10);
       if (!translation[currentSurah]) {
         translation[currentSurah] = {};
       }
+      lastAyahInSurah = null;
       continue;
     }
 
-    if (currentSurah) {
-      // Match "Ayah 1: ..."
-      const ayahMatch = trimmedLine.match(/^Ayah (\d+):\s*(.*)/i);
-      if (ayahMatch) {
-        const ayahNum = parseInt(ayahMatch[1], 10);
-        const ayahText = ayahMatch[2].trim();
-        
-        translation[currentSurah][ayahNum] = ayahText;
-      }
+    if (!currentSurah) continue;
+
+    // Match "1. ..."
+    const ayahMatch = trimmedLine.match(/^(\d+)\.\s*(.*)/);
+    if (ayahMatch) {
+      const ayahNum = parseInt(ayahMatch[1], 10);
+      const ayahText = ayahMatch[2].trim();
+      lastAyahInSurah = ayahNum;
+      translation[currentSurah][ayahNum] = ayahText;
+    } else if (lastAyahInSurah) {
+      // This is a continuation of the previous verse
+      translation[currentSurah][lastAyahInSurah] += ' ' + trimmedLine;
     }
   }
 
@@ -57,7 +62,7 @@ const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
 
 export const useLugandaTranslation = () => {
   return useQuery<LugandaTranslation>({
-    queryKey: ["lugandaTranslation_v5_parser"],
+    queryKey: ["lugandaTranslation_v6_parser_essuula"],
     queryFn: fetchAndParseTranslation,
     staleTime: Infinity, 
     gcTime: Infinity,

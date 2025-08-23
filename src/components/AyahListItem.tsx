@@ -28,8 +28,19 @@ const AyahListItem = ({ ayah, surahNumber, displayVerseNumber, isPlaying, onPlay
 
   const highlightColor = getHighlightColor(surahNumber, ayah.numberInSurah);
 
+  const getLugandaTextForCopy = (): string => {
+    const isBismillahInjected = surahNumber !== 1 && surahNumber !== 9;
+
+    if (isBismillahInjected && displayVerseNumber === 1) {
+      return "Bisimillahi Rahmani Rahimi.";
+    }
+
+    const translationVerseNumber = isBismillahInjected ? displayVerseNumber - 1 : displayVerseNumber;
+    return lugandaTranslation?.[surahNumber]?.[translationVerseNumber] || "[Luganda translation not available]";
+  };
+
   const handleCopy = () => {
-    const lugandaText = lugandaTranslation?.[surahNumber]?.[ayah.numberInSurah] || "[Luganda translation not available]";
+    const lugandaText = getLugandaTextForCopy();
     const textToCopy = `${ayah.text}\n\n${ayah.englishText}\n\n${lugandaText}\n\n- Surah ${surahNumber}, Verse ${displayVerseNumber}`;
     
     navigator.clipboard.writeText(textToCopy);
@@ -44,7 +55,15 @@ const AyahListItem = ({ ayah, surahNumber, displayVerseNumber, isPlaying, onPlay
       return <Skeleton className="h-6 w-full" />;
     }
     
-    const translation = lugandaTranslation?.[surahNumber]?.[ayah.numberInSurah];
+    const isBismillahInjected = surahNumber !== 1 && surahNumber !== 9;
+    let translation: string | undefined;
+
+    if (isBismillahInjected && displayVerseNumber === 1) {
+      translation = "Bisimillahi Rahmani Rahimi.";
+    } else {
+      const translationVerseNumber = isBismillahInjected ? displayVerseNumber - 1 : displayVerseNumber;
+      translation = lugandaTranslation?.[surahNumber]?.[translationVerseNumber];
+    }
     
     if (translation) {
       return <p className="text-muted-foreground" style={{ fontSize: `${translationFontSize}px`, color: translationFontColor || undefined }}>{translation}</p>;
