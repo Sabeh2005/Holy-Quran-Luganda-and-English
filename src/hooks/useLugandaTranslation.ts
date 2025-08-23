@@ -19,35 +19,40 @@ const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
   const lines = text.split('\n');
   
   let currentSurah: number | null = null;
-  let lastAyahInSurah: number | null = null;
 
   for (const line of lines) {
     const trimmedLine = line.trim();
-    if (!trimmedLine || /^-+$/.test(trimmedLine)) continue;
+    if (!trimmedLine) continue;
 
-    // Match "Essuula 1:"
-    const surahMatch = trimmedLine.match(/^Essuula (\d+):/i);
+    const surahMatch = trimmedLine.match(/Surah (\d+):/i);
     if (surahMatch) {
       currentSurah = parseInt(surahMatch[1], 10);
       if (!translation[currentSurah]) {
         translation[currentSurah] = {};
       }
-      lastAyahInSurah = null;
+
+      if (currentSurah === 1) {
+        const parts = trimmedLine.split(/Ayah \d+:/i);
+        for (let i = 1; i < parts.length; i++) {
+          const verseText = parts[i].replace(/###.*$/, "").trim();
+          if (verseText) {
+            translation[currentSurah][i] = verseText;
+          }
+        }
+      }
       continue;
     }
 
-    if (!currentSurah) continue;
-
-    // Match "1. ..."
-    const ayahMatch = trimmedLine.match(/^(\d+)\.\s*(.*)/);
-    if (ayahMatch) {
-      const ayahNum = parseInt(ayahMatch[1], 10);
-      const ayahText = ayahMatch[2].trim();
-      lastAyahInSurah = ayahNum;
-      translation[currentSurah][ayahNum] = ayahText;
-    } else if (lastAyahInSurah) {
-      // This is a continuation of the previous verse
-      translation[currentSurah][lastAyahInSurah] += ' ' + trimmedLine;
+    if (currentSurah) {
+      const ayahMatch = trimmedLine.match(/^Ayah (\d+):\s*(.*)/i);
+      if (ayahMatch) {
+        const ayahNum = parseInt(ayahMatch[1], 10);
+        const ayahText = ayahMatch[2].trim();
+        
+        if (ayahText) {
+          translation[currentSurah][ayahNum] = ayahText;
+        }
+      }
     }
   }
 
@@ -62,7 +67,7 @@ const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
 
 export const useLugandaTranslation = () => {
   return useQuery<LugandaTranslation>({
-    queryKey: ["lugandaTranslation_v6_parser_essuula"],
+    queryKey: ["lugandaTranslation_v7_parser_surah_ayah"],
     queryFn: fetchAndParseTranslation,
     staleTime: Infinity, 
     gcTime: Infinity,
