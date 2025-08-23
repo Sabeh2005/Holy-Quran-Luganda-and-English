@@ -4,7 +4,6 @@ import { Play, Pause, Bookmark, Copy, Share2, Sparkles } from "lucide-react";
 import { Ayah } from "@/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useSettings } from "@/context/SettingsContext";
 import { useHighlight } from "@/context/HighlightContext";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -28,10 +27,18 @@ const AyahListItem = ({ ayah, surahNumber, displayVerseNumber, isPlaying, onPlay
 
   const highlightColor = getHighlightColor(surahNumber, displayVerseNumber);
 
-  // Special handling for Bismillah which is always verse 1 (except for Surah 1 and 9)
   const isBismillah = displayVerseNumber === 1 && surahNumber !== 1 && surahNumber !== 9;
   const bismillahLuganda = "Ku Iw’erinnya lya Allah, Omusaasizi ennyo,Ow’ekisa ekingi.";
-  const lugandaText = isBismillah ? bismillahLuganda : lugandaTranslation?.[surahNumber]?.[displayVerseNumber];
+
+  // The verse number for data lookup is the original number from the Quran.
+  // The displayVerseNumber has been shifted by our fetching logic for surahs with Bismillah.
+  const dataVerseNumber = (surahNumber !== 1 && surahNumber !== 9) 
+    ? displayVerseNumber - 1 
+    : displayVerseNumber;
+
+  const lugandaText = isBismillah 
+    ? bismillahLuganda 
+    : lugandaTranslation?.[surahNumber]?.[dataVerseNumber];
 
   const handleCopy = () => {
     const textToCopy = `${ayah.text}\n\n${ayah.englishText}\n\n${lugandaText || "[Luganda translation not available]"}\n\n- Surah ${surahNumber}, Verse ${displayVerseNumber}`;
@@ -44,15 +51,11 @@ const AyahListItem = ({ ayah, surahNumber, displayVerseNumber, isPlaying, onPlay
   };
 
   const renderLugandaContent = () => {
-    if (lugandaTranslation === undefined && !isBismillah) {
-      return <Skeleton className="h-6 w-full" />;
-    }
-    
     if (lugandaText) {
       return <p className="text-muted-foreground" style={{ fontSize: `${translationFontSize}px`, color: translationFontColor || undefined }}>{lugandaText}</p>;
     }
     
-    return <p className="text-muted-foreground italic" style={{ fontSize: `${translationFontSize}px`, color: translationFontColor || undefined }}>Luganda translation for this Surah is not yet available.</p>;
+    return <p className="text-muted-foreground italic" style={{ fontSize: `${translationFontSize}px`, color: translationFontColor || undefined }}>Luganda translation for this verse is not yet available.</p>;
   };
 
   return (
