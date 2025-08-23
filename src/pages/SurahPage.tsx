@@ -12,10 +12,12 @@ import { useLugandaTranslation } from "@/hooks/useLugandaTranslation";
 import { useMisharyAudio } from "@/hooks/useMisharyAudio";
 import { showError } from "@/utils/toast";
 
+const BISMILLAH_TEXT = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ";
+
 const BISMILLAH_AYAH: Ayah = {
-  number: 0, // Placeholder global number
+  number: 0, // Using 0 as a unique identifier for our custom Bismillah object
   audio: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/1.mp3",
-  text: "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ",
+  text: BISMILLAH_TEXT,
   englishText: "In the name of Allah, the Entirely Merciful, the Especially Merciful.",
   numberInSurah: 1,
   juz: 0, manzil: 0, page: 0, ruku: 0, hizbQuarter: 0, sajda: false,
@@ -45,9 +47,15 @@ const fetchSurahDetail = async (surahId: number) => {
   let finalAyahs = combinedAyahs;
   let finalNumberOfAyahs = arabicEdition.numberOfAyahs;
 
-  // For all surahs except Al-Fatihah (1) and At-Tawbah (9), prepend Bismillah and re-number
+  // For all surahs except Al-Fatihah (1) and At-Tawbah (9)
   if (surahId !== 1 && surahId !== 9) {
-    const shiftedAyahs = combinedAyahs.map(ayah => ({
+    // First, clean the Bismillah from the API's first verse if it exists
+    if (finalAyahs.length > 0 && finalAyahs[0].text.startsWith(BISMILLAH_TEXT)) {
+      finalAyahs[0].text = finalAyahs[0].text.replace(BISMILLAH_TEXT, '').trim();
+    }
+
+    // Then, prepend our independent Bismillah and re-number all subsequent verses
+    const shiftedAyahs = finalAyahs.map(ayah => ({
       ...ayah,
       numberInSurah: ayah.numberInSurah + 1,
     }));

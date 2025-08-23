@@ -27,18 +27,25 @@ const AyahListItem = ({ ayah, surahNumber, displayVerseNumber, isPlaying, onPlay
 
   const highlightColor = getHighlightColor(surahNumber, displayVerseNumber);
 
-  const isBismillah = displayVerseNumber === 1 && surahNumber !== 1 && surahNumber !== 9;
+  const isPrependedBismillah = (surahNumber !== 1 && surahNumber !== 9 && displayVerseNumber === 1);
   const bismillahLuganda = "Ku Iw’erinnya lya Allah, Omusaasizi ennyo,Ow’ekisa ekingi.";
 
-  // The verse number for data lookup is the original number from the Quran.
-  // The displayVerseNumber has been shifted by our fetching logic for surahs with Bismillah.
-  const dataVerseNumber = (surahNumber !== 1 && surahNumber !== 9) 
-    ? displayVerseNumber - 1 
-    : displayVerseNumber;
+  const getLugandaText = () => {
+    if (isPrependedBismillah) {
+      return bismillahLuganda;
+    }
 
-  const lugandaText = isBismillah 
-    ? bismillahLuganda 
-    : lugandaTranslation?.[surahNumber]?.[dataVerseNumber];
+    // For Surahs with a prepended Bismillah, the lookup key is the displayed verse number minus 1.
+    if (surahNumber !== 1 && surahNumber !== 9) {
+      const lookupKey = displayVerseNumber - 1;
+      return lugandaTranslation?.[surahNumber]?.[lookupKey];
+    }
+
+    // For Surah 1 and 9, the lookup key is the same as the displayed verse number.
+    return lugandaTranslation?.[surahNumber]?.[displayVerseNumber];
+  };
+
+  const lugandaText = getLugandaText();
 
   const handleCopy = () => {
     const textToCopy = `${ayah.text}\n\n${ayah.englishText}\n\n${lugandaText || "[Luganda translation not available]"}\n\n- Surah ${surahNumber}, Verse ${displayVerseNumber}`;
