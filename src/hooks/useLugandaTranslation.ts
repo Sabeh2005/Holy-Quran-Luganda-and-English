@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 
 type LugandaTranslation = Record<number, Record<number, string>>;
 
-const LUGANDA_TRANSLATION_URL = "https://ndlvawhavwyvqergzvng.supabase.co/storage/v1/object/public/Luganda%20Quran/Holy%20Quran%20Luganda.txt";
+const LUGANDA_TRANSLATION_URL = "https://ndlvawhavwyvqergzvng.supabase.co/storage/v1/object/public/Luganda%20Quran/Holy%20Quran%20Luganda%20new.txt";
 
 const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
   const response = await fetch(LUGANDA_TRANSLATION_URL);
@@ -62,7 +62,7 @@ const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
 
 export const useLugandaTranslation = () => {
   return useQuery<LugandaTranslation>({
-    queryKey: ["lugandaTranslation_v4_parser"],
+    queryKey: ["lugandaTranslation_v5_parser"],
     queryFn: fetchAndParseTranslation,
     staleTime: Infinity, 
     gcTime: Infinity,
