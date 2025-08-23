@@ -21,36 +21,39 @@ const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
   let currentSurah: number | null = null;
 
   for (const line of lines) {
-    const trimmedLine = line.trim();
-    if (!trimmedLine) continue;
+    let processLine = line.trim();
+    if (!processLine) continue;
 
-    const surahMatch = trimmedLine.match(/Surah (\d+):/i);
+    const surahMatch = processLine.match(/Surah (\d+):/i);
     if (surahMatch) {
       currentSurah = parseInt(surahMatch[1], 10);
       if (!translation[currentSurah]) {
         translation[currentSurah] = {};
       }
+      // The rest of the line might contain the first Ayah, so we process it.
+      processLine = processLine.substring(surahMatch[0].length).trim();
+    }
 
+    if (currentSurah && processLine) {
+      // Special handling for Surah 1 which has multiple Ayahs on one line
       if (currentSurah === 1) {
-        const parts = trimmedLine.split(/Ayah \d+:/i);
+        const parts = processLine.split(/Ayah \d+:/i);
         for (let i = 1; i < parts.length; i++) {
           const verseText = parts[i].replace(/###.*$/, "").trim();
           if (verseText) {
             translation[currentSurah][i] = verseText;
           }
         }
-      }
-      continue;
-    }
-
-    if (currentSurah) {
-      const ayahMatch = trimmedLine.match(/^Ayah (\d+):\s*(.*)/i);
-      if (ayahMatch) {
-        const ayahNum = parseInt(ayahMatch[1], 10);
-        const ayahText = ayahMatch[2].trim();
-        
-        if (ayahText) {
-          translation[currentSurah][ayahNum] = ayahText;
+      } else {
+        // For other surahs
+        const ayahMatch = processLine.match(/^Ayah (\d+):\s*(.*)/i);
+        if (ayahMatch) {
+          const ayahNum = parseInt(ayahMatch[1], 10);
+          const ayahText = ayahMatch[2].trim();
+          
+          if (ayahText) {
+            translation[currentSurah][ayahNum] = ayahText;
+          }
         }
       }
     }
@@ -67,7 +70,7 @@ const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
 
 export const useLugandaTranslation = () => {
   return useQuery<LugandaTranslation>({
-    queryKey: ["lugandaTranslation_v7_parser_surah_ayah"],
+    queryKey: ["lugandaTranslation_v8_parser_fix_baqarah"],
     queryFn: fetchAndParseTranslation,
     staleTime: Infinity, 
     gcTime: Infinity,
