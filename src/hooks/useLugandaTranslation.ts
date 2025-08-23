@@ -19,7 +19,7 @@ const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
   const lines = text.split('\n');
   
   let currentSurah: number | null = null;
-  let lastAyahInSurah: number | null = null;
+  let lastAyahNum: number | null = null;
 
   for (const line of lines) {
     let processedLine = line.trim();
@@ -32,32 +32,34 @@ const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
             translation[currentSurah] = {};
         }
         processedLine = processedLine.substring(surahMatch[0].length).trim();
-        lastAyahInSurah = null;
-
-        if (currentSurah === 1 && processedLine) {
-            const parts = processedLine.split(/Ayah \d+:/i);
-            for (let i = 1; i < parts.length; i++) {
-                const verseText = parts[i].replace(/###.*$/, "").trim();
-                if (verseText) {
-                    translation[currentSurah][i] = verseText;
-                }
-            }
-            continue;
-        }
+        lastAyahNum = null; 
     }
 
-    if (currentSurah && processedLine) {
-        const ayahMatch = processedLine.match(/^Ayah (\d+):\s*(.*)/i);
-        if (ayahMatch) {
-            const ayahNum = parseInt(ayahMatch[1], 10);
-            const ayahText = ayahMatch[2].trim();
-            lastAyahInSurah = ayahNum;
-            translation[currentSurah][ayahNum] = (translation[currentSurah][ayahNum] || '') + ayahText;
-        } else if (lastAyahInSurah) {
-            translation[currentSurah][lastAyahInSurah] += ' ' + processedLine;
+    if (currentSurah) {
+        const parts = processedLine.split(/(Ayah \d+:)/i);
+        
+        if (parts.length > 1) { 
+            if (parts[0].trim() && lastAyahNum) {
+                translation[currentSurah][lastAyahNum] += ' ' + parts[0].trim();
+            }
+
+            for (let i = 1; i < parts.length; i += 2) {
+                const ayahHeader = parts[i];
+                const ayahNumMatch = ayahHeader.match(/Ayah (\d+):/i);
+                if (!ayahNumMatch) continue;
+
+                const ayahNum = parseInt(ayahNumMatch[1], 10);
+                const ayahText = (parts[i+1] || '').trim();
+
+                lastAyahNum = ayahNum;
+                translation[currentSurah][ayahNum] = (translation[currentSurah][ayahNum] || '') + ayahText;
+            }
+        } else if (lastAyahNum && processedLine) {
+            translation[currentSurah][lastAyahNum] += ' ' + processedLine;
         }
     }
   }
+
 
   if (Object.keys(translation).length === 0) {
     const fileSnippet = text.substring(0, 500);
@@ -70,7 +72,7 @@ const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
 
 export const useLugandaTranslation = () => {
   return useQuery<LugandaTranslation>({
-    queryKey: ["lugandaTranslation_v9_final_parser"],
+    queryKey: ["lugandaTranslation_v10_robust_parser"],
     queryFn: fetchAndParseTranslation,
     staleTime: Infinity, 
     gcTime: Infinity,
