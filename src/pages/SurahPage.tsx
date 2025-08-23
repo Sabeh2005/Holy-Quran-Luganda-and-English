@@ -222,7 +222,7 @@ const SurahPage = () => {
             key={ayah.number}
             ayah={ayah}
             surahNumber={id}
-            displayVerseNumber={ayah.numberInSurah}
+            displayVerseNumber={id === 2 ? ayah.numberInSurah + 1 : ayah.numberInSurah}
             isPlaying={isAyahPlaying && activeAyah?.number === ayah.number}
             onPlay={() => handlePlayAyah(ayah)}
             lugandaTranslation={lugandaTranslation}
