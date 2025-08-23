@@ -40,7 +40,8 @@ const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
         
         if (parts.length > 1) { 
             if (parts[0].trim() && lastAyahNum) {
-                translation[currentSurah][lastAyahNum] += ' ' + parts[0].trim();
+                const cleanedPart = parts[0].trim().replace(/\*\*/g, '').trim();
+                translation[currentSurah][lastAyahNum] += ' ' + cleanedPart;
             }
 
             for (let i = 1; i < parts.length; i += 2) {
@@ -50,12 +51,14 @@ const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
 
                 const ayahNum = parseInt(ayahNumMatch[1], 10);
                 const ayahText = (parts[i+1] || '').trim();
+                const cleanedAyahText = ayahText.replace(/\*\*/g, '').trim();
 
                 lastAyahNum = ayahNum;
-                translation[currentSurah][ayahNum] = (translation[currentSurah][ayahNum] || '') + ayahText;
+                translation[currentSurah][ayahNum] = ((translation[currentSurah][ayahNum] || '') + ' ' + cleanedAyahText).trim();
             }
         } else if (lastAyahNum && processedLine) {
-            translation[currentSurah][lastAyahNum] += ' ' + processedLine;
+            const cleanedLine = processedLine.replace(/\*\*/g, '').trim();
+            translation[currentSurah][lastAyahNum] += ' ' + cleanedLine;
         }
     }
   }
@@ -72,7 +75,7 @@ const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
 
 export const useLugandaTranslation = () => {
   return useQuery<LugandaTranslation>({
-    queryKey: ["lugandaTranslation_v10_robust_parser"],
+    queryKey: ["lugandaTranslation_v11_cleaned"],
     queryFn: fetchAndParseTranslation,
     staleTime: Infinity, 
     gcTime: Infinity,
