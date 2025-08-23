@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { surah2LugandaTranslation } from "@/data/surah-2-luganda";
 
 type LugandaTranslation = Record<number, Record<number, string>>;
 
@@ -38,7 +39,6 @@ const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
     
     for (let j = 1; j < ayahsText.length; j += 2) {
         const ayahLabelNumber = parseInt(ayahsText[j], 10);
-        // If there was an unlabeled first verse, the labels are off by one.
         const actualAyahNumber = hasUnlabeledFirstVerse ? ayahLabelNumber + 1 : ayahLabelNumber;
         
         const ayahContent = ayahsText[j + 1];
@@ -56,6 +56,10 @@ const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
     }
   }
 
+  // **DEFINITIVE FIX:** Replace whatever the parser produced for Surah 2 
+  // with the 100% correct, manually transcribed data.
+  translation[2] = surah2LugandaTranslation;
+
   if (Object.keys(translation).length === 0) {
     const fileSnippet = text.substring(0, 500);
     throw new Error(`Failed to parse any surahs from the file. Content: "${fileSnippet}"`);
@@ -67,7 +71,7 @@ const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
 
 export const useLugandaTranslation = () => {
   return useQuery<LugandaTranslation>({
-    queryKey: ["lugandaTranslation_v14_final_parser"],
+    queryKey: ["lugandaTranslation_v15_manual_sura2_fix"],
     queryFn: fetchAndParseTranslation,
     staleTime: Infinity, 
     gcTime: Infinity,
