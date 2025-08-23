@@ -12,17 +12,6 @@ import { useLugandaTranslation } from "@/hooks/useLugandaTranslation";
 import { useMisharyAudio } from "@/hooks/useMisharyAudio";
 import { showError } from "@/utils/toast";
 
-const BISMILLAH_TEXT = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ";
-
-const BISMILLAH_AYAH: Ayah = {
-  number: 0, // Using 0 as a unique identifier for our custom Bismillah object
-  audio: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/1.mp3",
-  text: BISMILLAH_TEXT,
-  englishText: "In the name of Allah, the Entirely Merciful, the Especially Merciful.",
-  numberInSurah: 1,
-  juz: 0, manzil: 0, page: 0, ruku: 0, hizbQuarter: 0, sajda: false,
-};
-
 const fetchSurahDetail = async (surahId: number) => {
   const [arabicRes, englishRes] = await Promise.all([
     fetch(`https://api.alquran.cloud/v1/surah/${surahId}/quran-uthmani`),
@@ -39,37 +28,59 @@ const fetchSurahDetail = async (surahId: number) => {
   const arabicEdition = arabicData.data;
   const englishEdition = englishData.data;
 
-  const combinedAyahs: Ayah[] = arabicEdition.ayahs.map((ayah: any, index: number) => ({
-    ...ayah,
-    englishText: englishEdition.ayahs[index].text,
-  }));
+  let combinedAyahs: Ayah[] = [];
+  let numberOfAyahs = arabicEdition.numberOfAyahs;
 
-  let finalAyahs = combinedAyahs;
-  let finalNumberOfAyahs = arabicEdition.numberOfAyahs;
-
-  // For all surahs except Al-Fatihah (1) and At-Tawbah (9)
-  if (surahId !== 1 && surahId !== 9) {
-    // First, clean the Bismillah from the API's first verse if it exists
-    if (finalAyahs.length > 0 && finalAyahs[0].text.startsWith(BISMILLAH_TEXT)) {
-      finalAyahs[0].text = finalAyahs[0].text.replace(BISMILLAH_TEXT, '').trim();
-    }
-
-    // Then, prepend our independent Bismillah and re-number all subsequent verses
-    const shiftedAyahs = finalAyahs.map(ayah => ({
+  if (surahId === 1 || surahId === 9) {
+    combinedAyahs = arabicEdition.ayahs.map((ayah: any, index: number) => ({
       ...ayah,
-      numberInSurah: ayah.numberInSurah + 1,
+      englishText: englishEdition.ayahs[index].text,
     }));
-    finalAyahs = [BISMILLAH_AYAH, ...shiftedAyahs];
-    finalNumberOfAyahs += 1;
+  } else {
+    numberOfAyahs += 1; 
+
+    const firstApiAyah = arabicEdition.ayahs[0];
+    const firstApiEnglishAyah = englishEdition.ayahs[0];
+    
+    const bismillahText = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ";
+    const bismillahRegex = new RegExp(`^${bismillahText}\\s*`);
+
+    combinedAyahs.push({
+      ...firstApiAyah,
+      number: firstApiAyah.number - 1,
+      audio: "",
+      text: bismillahText,
+      englishText: "In the name of Allah, the Gracious, the Merciful.",
+      numberInSurah: 1,
+      sajda: false,
+    });
+
+    const actualFirstVerseText = firstApiAyah.text.replace(bismillahRegex, "").trim();
+    combinedAyahs.push({
+      ...firstApiAyah,
+      text: actualFirstVerseText,
+      englishText: firstApiEnglishAyah.text,
+      numberInSurah: 2,
+    });
+
+    for (let i = 1; i < arabicEdition.ayahs.length; i++) {
+      const originalAyah = arabicEdition.ayahs[i];
+      const englishAyah = englishEdition.ayahs[i];
+      combinedAyahs.push({
+        ...originalAyah,
+        englishText: englishAyah.text,
+        numberInSurah: originalAyah.numberInSurah + 1,
+      });
+    }
   }
 
   const surahInfo: Partial<SurahInfo> & { ayahs: Ayah[] } = {
     name: arabicEdition.name,
     englishName: arabicEdition.englishName,
     englishNameTranslation: arabicEdition.englishNameTranslation,
-    numberOfAyahs: finalNumberOfAyahs,
+    numberOfAyahs,
     revelationType: arabicEdition.revelationType,
-    ayahs: finalAyahs,
+    ayahs: combinedAyahs,
     lugandaName: lugandaSurahNames[surahId - 1] || "",
   };
   return surahInfo;
@@ -131,7 +142,7 @@ const SurahPage = () => {
   };
 
   const handlePlayAyah = (ayah: Ayah) => {
-    if (isAyahPlaying && activeAyah?.number === ayah.number && activeAyah?.numberInSurah === ayah.numberInSurah) {
+    if (isAyahPlaying && activeAyah?.number === ayah.number) {
       stopCurrentAudio();
     } else {
       playAudio(
@@ -230,15 +241,14 @@ const SurahPage = () => {
           {isSurahPlaying ? 'Pause Surah' : 'Play Surah'}
         </Button>
       </div>
-      
       <div className="space-y-4">
         {surah?.ayahs.map((ayah) => (
           <AyahListItem
-            key={`${ayah.number}-${ayah.numberInSurah}`}
+            key={`${id}-${ayah.numberInSurah}`}
             ayah={ayah}
             surahNumber={id}
             displayVerseNumber={ayah.numberInSurah}
-            isPlaying={isAyahPlaying && activeAyah?.number === ayah.number && activeAyah?.numberInSurah === ayah.numberInSurah}
+            isPlaying={isAyahPlaying && activeAyah?.number === ayah.number}
             onPlay={() => handlePlayAyah(ayah)}
             lugandaTranslation={lugandaTranslation}
           />

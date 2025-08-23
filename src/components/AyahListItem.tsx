@@ -4,6 +4,7 @@ import { Play, Pause, Bookmark, Copy, Share2, Sparkles } from "lucide-react";
 import { Ayah } from "@/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useSettings } from "@/context/SettingsContext";
 import { useHighlight } from "@/context/HighlightContext";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -25,30 +26,11 @@ const AyahListItem = ({ ayah, surahNumber, displayVerseNumber, isPlaying, onPlay
   const { arabicFontSize, translationFontSize, arabicFontColor, translationFontColor } = useSettings();
   const { getHighlightColor, addHighlight, removeHighlight } = useHighlight();
 
-  const highlightColor = getHighlightColor(surahNumber, displayVerseNumber);
-
-  const isPrependedBismillah = (surahNumber !== 1 && surahNumber !== 9 && displayVerseNumber === 1);
-  const bismillahLuganda = "Ku Iw’erinnya lya Allah, Omusaasizi ennyo,Ow’ekisa ekingi.";
-
-  const getLugandaText = () => {
-    if (isPrependedBismillah) {
-      return bismillahLuganda;
-    }
-
-    // For Surahs with a prepended Bismillah, the lookup key is the displayed verse number minus 1.
-    if (surahNumber !== 1 && surahNumber !== 9) {
-      const lookupKey = displayVerseNumber - 1;
-      return lugandaTranslation?.[surahNumber]?.[lookupKey];
-    }
-
-    // For Surah 1 and 9, the lookup key is the same as the displayed verse number.
-    return lugandaTranslation?.[surahNumber]?.[displayVerseNumber];
-  };
-
-  const lugandaText = getLugandaText();
+  const highlightColor = getHighlightColor(surahNumber, ayah.numberInSurah);
 
   const handleCopy = () => {
-    const textToCopy = `${ayah.text}\n\n${ayah.englishText}\n\n${lugandaText || "[Luganda translation not available]"}\n\n- Surah ${surahNumber}, Verse ${displayVerseNumber}`;
+    const lugandaText = lugandaTranslation?.[surahNumber]?.[ayah.numberInSurah] || "[Luganda translation not available]";
+    const textToCopy = `${ayah.text}\n\n${ayah.englishText}\n\n${lugandaText}\n\n- Surah ${surahNumber}, Verse ${displayVerseNumber}`;
     
     navigator.clipboard.writeText(textToCopy);
     toast({
@@ -58,11 +40,17 @@ const AyahListItem = ({ ayah, surahNumber, displayVerseNumber, isPlaying, onPlay
   };
 
   const renderLugandaContent = () => {
-    if (lugandaText) {
-      return <p className="text-muted-foreground" style={{ fontSize: `${translationFontSize}px`, color: translationFontColor || undefined }}>{lugandaText}</p>;
+    if (lugandaTranslation === undefined) {
+      return <Skeleton className="h-6 w-full" />;
     }
     
-    return <p className="text-muted-foreground italic" style={{ fontSize: `${translationFontSize}px`, color: translationFontColor || undefined }}>Luganda translation for this verse is not yet available.</p>;
+    const translation = lugandaTranslation?.[surahNumber]?.[ayah.numberInSurah];
+    
+    if (translation) {
+      return <p className="text-muted-foreground" style={{ fontSize: `${translationFontSize}px`, color: translationFontColor || undefined }}>{translation}</p>;
+    }
+    
+    return <p className="text-muted-foreground italic" style={{ fontSize: `${translationFontSize}px`, color: translationFontColor || undefined }}>[Luganda translation not available for this verse]</p>;
   };
 
   return (
@@ -90,8 +78,8 @@ const AyahListItem = ({ ayah, surahNumber, displayVerseNumber, isPlaying, onPlay
               </PopoverTrigger>
               <PopoverContent className="w-auto">
                 <HighlightPopover 
-                  onColorSelect={(color) => addHighlight(surahNumber, displayVerseNumber, color)}
-                  onRemove={() => removeHighlight(surahNumber, displayVerseNumber)}
+                  onColorSelect={(color) => addHighlight(surahNumber, ayah.numberInSurah, color)}
+                  onRemove={() => removeHighlight(surahNumber, ayah.numberInSurah)}
                   currentColor={highlightColor}
                 />
               </PopoverContent>

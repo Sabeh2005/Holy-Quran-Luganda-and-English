@@ -1,29 +1,69 @@
 import { useQuery } from "@tanstack/react-query";
-import { surah1LugandaTranslation } from "@/data/surah-1-luganda";
-import { surah2LugandaTranslation } from "@/data/surah-2-luganda";
-import { surah3LugandaTranslation } from "@/data/surah-3-luganda";
-// ... imports for surahs 4-114 would be here
 
 type LugandaTranslation = Record<number, Record<number, string>>;
 
-// This object would contain all 114 imported translations
-const allTranslations: LugandaTranslation = {
-  1: surah1LugandaTranslation,
-  2: surah2LugandaTranslation,
-  3: surah3LugandaTranslation,
-  // ... Other surahs would be added here
+const LUGANDA_TRANSLATION_URL = "https://ndlvawhavwyvqergzvng.supabase.co/storage/v1/object/public/Luganda%20Quran/Holy%20Quran%20Luganda.txt";
+
+const fetchAndParseTranslation = async (): Promise<LugandaTranslation> => {
+  const response = await fetch(LUGANDA_TRANSLATION_URL);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch Luganda translation file. Status: ${response.status}`);
+  }
+  
+  const text = await response.text();
+  if (!text) {
+    throw new Error("Luganda translation file is empty.");
+  }
+  
+  const translation: LugandaTranslation = {};
+  const lines = text.split('\n');
+  
+  let currentSurah: number | null = null;
+  let lastAyahInSurah: number | null = null;
+
+  for (const line of lines) {
+    const trimmedLine = line.trim();
+    if (!trimmedLine) continue;
+    if (/^-+$/.test(trimmedLine)) continue;
+
+    const surahMatch = trimmedLine.match(/^Essuula (\d+):/i);
+    if (surahMatch) {
+      currentSurah = parseInt(surahMatch[1], 10);
+      if (!translation[currentSurah]) {
+        translation[currentSurah] = {};
+      }
+      lastAyahInSurah = null;
+      continue;
+    }
+
+    if (!currentSurah) continue;
+
+    const ayahMatch = trimmedLine.match(/^(\d+)\.\s*(.*)/);
+    if (ayahMatch) {
+      const ayahNum = parseInt(ayahMatch[1], 10);
+      const ayahText = ayahMatch[2].trim();
+      lastAyahInSurah = ayahNum;
+      // Initialize or append, just in case of duplicate verse numbers in file
+      translation[currentSurah][ayahNum] = (translation[currentSurah][ayahNum] || '') + ayahText;
+    } else if (lastAyahInSurah) {
+      // This is a continuation line for the last seen verse
+      translation[currentSurah][lastAyahInSurah] += ' ' + trimmedLine;
+    }
+  }
+
+  if (Object.keys(translation).length === 0) {
+    const fileSnippet = text.substring(0, 500);
+    throw new Error(`Failed to parse any surahs from the file. Content: "${fileSnippet}"`);
+  }
+
+  return translation;
 };
 
-const fetchAllTranslations = async (): Promise<LugandaTranslation> => {
-  // This function now returns the combined local data.
-  // It's wrapped in a promise to maintain the async structure expected by react-query.
-  return Promise.resolve(allTranslations);
-};
 
 export const useLugandaTranslation = () => {
   return useQuery<LugandaTranslation>({
-    queryKey: ["lugandaTranslation_local_all"],
-    queryFn: fetchAllTranslations,
+    queryKey: ["lugandaTranslation_v4_parser"],
+    queryFn: fetchAndParseTranslation,
     staleTime: Infinity, 
     gcTime: Infinity,
   });
