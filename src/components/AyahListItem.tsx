@@ -27,7 +27,11 @@ const AyahListItem = ({ ayah, surahNumber, displayVerseNumber, isPlaying, onPlay
   const { getHighlightColor, addHighlight, removeHighlight } = useHighlight();
 
   const highlightColor = getHighlightColor(surahNumber, displayVerseNumber);
-  const lugandaText = lugandaTranslation?.[surahNumber]?.[displayVerseNumber];
+
+  // Special handling for Bismillah which is always verse 1 (except for Surah 1 and 9)
+  const isBismillah = displayVerseNumber === 1 && surahNumber !== 1 && surahNumber !== 9;
+  const bismillahLuganda = "Ku Iw’erinnya lya Allah, Omusaasizi ennyo,Ow’ekisa ekingi.";
+  const lugandaText = isBismillah ? bismillahLuganda : lugandaTranslation?.[surahNumber]?.[displayVerseNumber];
 
   const handleCopy = () => {
     const textToCopy = `${ayah.text}\n\n${ayah.englishText}\n\n${lugandaText || "[Luganda translation not available]"}\n\n- Surah ${surahNumber}, Verse ${displayVerseNumber}`;
@@ -40,7 +44,7 @@ const AyahListItem = ({ ayah, surahNumber, displayVerseNumber, isPlaying, onPlay
   };
 
   const renderLugandaContent = () => {
-    if (lugandaTranslation === undefined) {
+    if (lugandaTranslation === undefined && !isBismillah) {
       return <Skeleton className="h-6 w-full" />;
     }
     
@@ -48,7 +52,7 @@ const AyahListItem = ({ ayah, surahNumber, displayVerseNumber, isPlaying, onPlay
       return <p className="text-muted-foreground" style={{ fontSize: `${translationFontSize}px`, color: translationFontColor || undefined }}>{lugandaText}</p>;
     }
     
-    return <p className="text-muted-foreground italic" style={{ fontSize: `${translationFontSize}px`, color: translationFontColor || undefined }}>[Luganda translation not available for this verse]</p>;
+    return <p className="text-muted-foreground italic" style={{ fontSize: `${translationFontSize}px`, color: translationFontColor || undefined }}>Luganda translation for this Surah is not yet available.</p>;
   };
 
   return (
